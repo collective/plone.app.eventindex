@@ -14,6 +14,13 @@ every second and have a very long end-date. In these cases we'll just include
 the first 10000 recurrences. But otherwise the implementation is simpler, 
 cleaner and more flexible.
 
+Todo
+----
+
+* Tests with timezones
+* More tests with recurrence
+* Decide how to handle timezone-naive dates (and test that)
+
 Credits
 -------
 

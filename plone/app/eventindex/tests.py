@@ -51,6 +51,19 @@ class EventIndexTests(unittest.TestCase):
         self.assertEqual(len(res[0]), 2)
         self.assertEqual(res[0][0], 4)
         self.assertEqual(res[0][1], 5)
+        
+        # Start date but no end date:
+        res = index._apply_index({'eventual': {'start': datetime(2011, 4, 6, 20, 0),}})
+        self.assertEqual(len(res[0]), 3)
+        self.assertEqual(res[0][0], 3)
+        self.assertEqual(res[0][1], 4)
+        self.assertEqual(res[0][2], 5)
+        
+        # End date but no start date:
+        res = index._apply_index({'eventual': {'end': datetime(2011, 4, 6, 20, 0),}})
+        self.assertEqual(len(res[0]), 2)
+        self.assertEqual(res[0][0], 1)
+        self.assertEqual(res[0][1], 2)
 
     def test_DateTime(self):
         test_objects = {
@@ -89,6 +102,19 @@ class EventIndexTests(unittest.TestCase):
         self.assertEqual(len(res[0]), 2)
         self.assertEqual(res[0][0], 4)
         self.assertEqual(res[0][1], 5)
+        
+        # Start date but no end date:
+        res = index._apply_index({'eventual': {'start': DateTime('2011/4/6 20:00 UTC'),}})
+        self.assertEqual(len(res[0]), 3)
+        self.assertEqual(res[0][0], 3)
+        self.assertEqual(res[0][1], 4)
+        self.assertEqual(res[0][2], 5)
+        
+        # End date but no start date:
+        res = index._apply_index({'eventual': {'end': DateTime('2011/4/6 20:00 UTC'),}})
+        self.assertEqual(len(res[0]), 2)
+        self.assertEqual(res[0][0], 1)
+        self.assertEqual(res[0][1], 2)
         
     def test_unindex(self):
         test_objects = {
