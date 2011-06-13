@@ -19,6 +19,7 @@ Todo
 
 * Tests with timezones
 * More tests with recurrence
+* Functional tests with a whole Plone-site
 * Decide how to handle timezone-naive dates (and test that)
 
 Credits
