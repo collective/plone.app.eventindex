@@ -95,6 +95,10 @@ class EventIndex(SimpleItem):
         ### 1. Get the values.
         start = self._getattr(self.start_attr, obj)
         end = self._getattr(self.end_attr, obj)
+        if start is None:
+            # Ignore calls if the obj does not have the start field.
+            return False
+
         if end is None:
             # Singular event
             end = start
