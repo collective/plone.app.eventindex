@@ -102,7 +102,7 @@ class EventIndex(SimpleItem):
         recurrence = self._getattr(self.recurrence_attr, obj)
         if recurrence is None:
             rule = None
-        elif isinstance(recurrence, str):
+        elif isinstance(recurrence, basestring):
             # XXX trap and log errors
             rule = rrule.rrulestr(recurrence, dtstart=start)
         elif isinstance(recurrence, rrule.rrulebase):
