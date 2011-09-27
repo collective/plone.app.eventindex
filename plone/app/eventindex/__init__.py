@@ -53,7 +53,7 @@ class EventIndex(SimpleItem):
         """Return Id of index."""
         return self._id
 
-    def getEntryForObject(documentId, default=None):
+    def getEntryForObject(self, documentId, default=None):
         """Get all information contained for 'documentId'."""
         raise NotImplementedError()
 
