@@ -19,7 +19,7 @@ from Products.PluginIndexes.interfaces import IPluggableIndex
 from Products.PluginIndexes.interfaces import ISortIndex
 
 class EventIndex(SimpleItem):
-    
+
     implements(IPluggableIndex)
 
     meta_type = "EventIndex"
@@ -31,14 +31,14 @@ class EventIndex(SimpleItem):
 
     manage = manage_main = DTMLFile('www/manageEventIndex', globals())
     manage_main._setName('manage_main')
-    
+
     def __init__(self, id, extra=None, caller=None):
         self._id = id
         self.start_attr = extra['start_attr'] or 'start'
         self.end_attr = extra['end_attr'] or 'end'
         self.recurrence_attr = extra['recurrence_attr'] or 'recurrence'
         self.clear()
-    
+
     def clear(self):
         """Empty the index"""
         self._length = Length()
@@ -66,11 +66,11 @@ class EventIndex(SimpleItem):
         attr = getattr(obj, name, None)
         if callable(attr):
             attr = attr()
-            
+
         if isinstance(attr, DateTime):
             attr = attr.utcdatetime()
         return attr
-        
+
     def index_object(self, documentId, obj, threshold=None):
         """Index an object.
 
@@ -91,33 +91,33 @@ class EventIndex(SimpleItem):
           calling it raises an AttributeError, do not add it to the index.
           for that name.
         """
-        
+
         ### 1. Get the values.
         start = self._getattr(self.start_attr, obj)
         end = self._getattr(self.end_attr, obj)
         if end is None:
             # Singular event
             end = start
-        
+
         recurrence = self._getattr(self.recurrence_attr, obj)
         if recurrence is None:
             rule = None
         elif isinstance(recurrence, str):
             # XXX trap and log errors
-            rule = rrule.rrulestr(recurrence, dtstart=start) 
+            rule = rrule.rrulestr(recurrence, dtstart=start)
         elif isinstance(recurrence, rrule.rrulebase):
             rule = recurrence
         else:
             #XXX Log error
             rule = None
-        
+
         ### 2. Make them into what should be indexed.
         # XXX Naive events are not comparable to timezoned events, so we convert
         # everything to utctimetuple(). This means naive events are assumed to
         # be GMT, but we can live with that at the moment.
         start_value = start.utctimetuple()
         end_value = end.utctimetuple()
-        
+
         # The end value should be the end of the recurrence, if any:
         if rule is not None:
             if rule.count is None and rule.until is None:
@@ -127,7 +127,7 @@ class EventIndex(SimpleItem):
                 duration = end - start
                 last = [x for x in rule._iter()][-1] + duration
                 end_value = last.utctimetuple()
-                    
+
         ### 3. Store everything in the indexes:
         row = self._start2uid.get(start_value, None)
         if row is None:
@@ -147,29 +147,29 @@ class EventIndex(SimpleItem):
         self._uid2recurrence[documentId] = rule
         self._uid2end[documentId] = end_value
         self._uid2duration[documentId] = end - start
-        
+
         return True
 
     def unindex_object(self, documentId):
         """Remove the documentId from the index."""
         start = self._uid2start[documentId]
         del self._uid2start[documentId]
-        
+
         row = self._start2uid[start]
         if documentId in row:
             row.remove(documentId)
         if len(row) == 0:
             del self._start2uid[start]
-            
+
         end = self._uid2end[documentId]
         del self._uid2end[documentId]
-        
+
         row = self._end2uid[end]
         if documentId in row:
             row.remove(documentId)
         if len(row) == 0:
             del self._end2uid[end]
-        
+
         del self._uid2duration[documentId]
         del self._uid2recurrence[documentId]
 
@@ -197,7 +197,7 @@ class EventIndex(SimpleItem):
         """
         if not request.has_key('eventual'): # 'in' doesn't work with this object
             return IISet(self._uid2end.keys()), ()
-        
+
         start = request['eventual'].get('start')
         if isinstance(start, DateTime):
             start = start.utcdatetime()
@@ -205,9 +205,9 @@ class EventIndex(SimpleItem):
         end = request['eventual'].get('end')
         if isinstance(end, DateTime):
             end = end.utcdatetime()
-            
+
         used_fields = ()
-        
+
         # Find those who do not end befores the start.
         try:
             maxkey = self._end2uid.maxKey()
@@ -245,12 +245,12 @@ class EventIndex(SimpleItem):
                 end_uids = IISet()
                 for row in self._start2uid.values(minkey, end):
                     end_uids = union(end_uids, row)
-                    
+
                 # Include open ended events:
                 if start is not None and self._end2uid.has_key(None):
                     for row in self._end2uid[None]:
                         end_uids = union(end_uids, row)
-                        
+
             except ValueError:
                 # No events
                 return IISet(), used_fields
@@ -264,15 +264,15 @@ class EventIndex(SimpleItem):
         # the event is actually occuring during the period.
         filtered_result = IISet()
         used_recurrence = False
-        
+
         for documentId in result:
             recurrence = self._uid2recurrence.get(documentId)
             if recurrence is None:
                 # This event isn't recurring, so it's a match:
                 filtered_result.add(documentId)
                 continue
-            
-            
+
+
             used_recurrence = True
             match = False
             # This is a possible place where optimizations can be done if
@@ -282,7 +282,7 @@ class EventIndex(SimpleItem):
             # of the period, so to avoid expansion. But most likely this
             # will have a very small impact on speed, so I skip this until
             # it actually becomes a problem.
-            
+
             if start is not None:
                 event_start = datetime(*self._uid2start[documentId][:6])
             else:
@@ -292,7 +292,7 @@ class EventIndex(SimpleItem):
                 event_end = event_start + event_duration
             else:
                 event_end = None
-            
+
             for occurrence in recurrence._iter():
                 if event_start is not None and occurrence < event_start:
                     # XXX we should add a counter and break after 10000 occurrences.
@@ -304,18 +304,18 @@ class EventIndex(SimpleItem):
                 # the query:
                 match = True
                 break
-            
+
             if match:
                 filtered_result.add(documentId)
             if used_recurrence:
                 used_fields += (self.recurrence_attr,)
-    
+
         return filtered_result, used_fields
 
     def numObjects(self):
         """Return the number of indexed objects."""
         return len(self._uid2start.keys())
-        
+
 
 manage_addEventIndexForm = DTMLFile('www/addEventIndex', globals())
 
