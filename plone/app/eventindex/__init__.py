@@ -195,14 +195,14 @@ class EventIndex(SimpleItem):
         The resultset argument contains the resultset, as already calculated by
         ZCatalog's search method.
         """
-        if not request.has_key('eventual'): # 'in' doesn't work with this object
+        if not request.has_key(self._id): # 'in' doesn't work with this object
             return IISet(self._uid2end.keys()), ()
 
-        start = request['eventual'].get('start')
+        start = request[self._id].get('start')
         if isinstance(start, DateTime):
             start = start.utcdatetime()
 
-        end = request['eventual'].get('end')
+        end = request[self._id].get('end')
         if isinstance(end, DateTime):
             end = end.utcdatetime()
 
