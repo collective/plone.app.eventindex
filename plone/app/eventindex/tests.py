@@ -32,38 +32,38 @@ class EventIndexTests(unittest.TestCase):
         self.assertEqual(len(res[0]), 5)
         
         # Return one
-        res = index._apply_index({'eventual': {'start': datetime(2011, 4, 5, 12, 0),
+        res = index._apply_index({'event': {'start': datetime(2011, 4, 5, 12, 0),
                                                'end': datetime(2011, 4, 5, 13, 0)}})
         self.assertEqual(len(res[0]), 1)
-        self.assertEqual(res[0][0], 1)
+        self.assertTrue(1 in res[0])
 
         # Get a bunch this day:
-        res = index._apply_index({'eventual': {'start': datetime(2011, 4, 7, 0, 0),
+        res = index._apply_index({'event': {'start': datetime(2011, 4, 7, 0, 0),
                                                'end': datetime(2011, 4, 8, 0, 0)}})
         self.assertEqual(len(res[0]), 3)
-        self.assertEqual(res[0][0], 3)
-        self.assertEqual(res[0][1], 4)
-        self.assertEqual(res[0][2], 5)
+        self.assertTrue(3 in res[0])
+        self.assertTrue(4 in res[0])
+        self.assertTrue(5 in res[0])
 
         # Get two out of the three during this day.
-        res = index._apply_index({'eventual': {'start': datetime(2011, 4, 7, 14, 0),
+        res = index._apply_index({'event': {'start': datetime(2011, 4, 7, 14, 0),
                                                'end': datetime(2011, 4, 7, 15, 0)}})
         self.assertEqual(len(res[0]), 2)
-        self.assertEqual(res[0][0], 4)
-        self.assertEqual(res[0][1], 5)
+        self.assertTrue(4 in res[0])
+        self.assertTrue(5 in res[0])
         
         # Start date but no end date:
-        res = index._apply_index({'eventual': {'start': datetime(2011, 4, 6, 20, 0),}})
+        res = index._apply_index({'event': {'start': datetime(2011, 4, 6, 20, 0),}})
         self.assertEqual(len(res[0]), 3)
-        self.assertEqual(res[0][0], 3)
-        self.assertEqual(res[0][1], 4)
-        self.assertEqual(res[0][2], 5)
+        self.assertTrue(3 in res[0])
+        self.assertTrue(4 in res[0])
+        self.assertTrue(5 in res[0])
         
         # End date but no start date:
-        res = index._apply_index({'eventual': {'end': datetime(2011, 4, 6, 20, 0),}})
+        res = index._apply_index({'event': {'end': datetime(2011, 4, 6, 20, 0),}})
         self.assertEqual(len(res[0]), 2)
-        self.assertEqual(res[0][0], 1)
-        self.assertEqual(res[0][1], 2)
+        self.assertTrue(1 in res[0])
+        self.assertTrue(2 in res[0])
 
     def test_DateTime(self):
         test_objects = {
@@ -83,38 +83,38 @@ class EventIndexTests(unittest.TestCase):
         self.assertEqual(len(res[0]), 5)
         
         # Return one
-        res = index._apply_index({'eventual': {'start': DateTime('2011/4/5 12:00 UTC'),
+        res = index._apply_index({'event': {'start': DateTime('2011/4/5 12:00 UTC'),
                                                'end': DateTime('2011/4/5 13:00 UTC')}})
         self.assertEqual(len(res[0]), 1)
-        self.assertEqual(res[0][0], 1)
+        self.assertTrue(1 in res[0])
 
         # Get a bunch this day:
-        res = index._apply_index({'eventual': {'start': DateTime('2011/4/7 00:00 UTC'),
+        res = index._apply_index({'event': {'start': DateTime('2011/4/7 00:00 UTC'),
                                                'end': DateTime('2011/4/8 00:00 UTC')}})
         self.assertEqual(len(res[0]), 3)
-        self.assertEqual(res[0][0], 3)
-        self.assertEqual(res[0][1], 4)
-        self.assertEqual(res[0][2], 5)
+        self.assertTrue(3 in res[0])
+        self.assertTrue(4 in res[0])
+        self.assertTrue(5 in res[0])
 
         # Get two out of the three during this day.
-        res = index._apply_index({'eventual': {'start': DateTime('2011/4/7 14:00 UTC'),
+        res = index._apply_index({'event': {'start': DateTime('2011/4/7 14:00 UTC'),
                                                'end': DateTime('2011/4/7 15:00 UTC')}})
         self.assertEqual(len(res[0]), 2)
-        self.assertEqual(res[0][0], 4)
-        self.assertEqual(res[0][1], 5)
+        self.assertTrue(4 in res[0])
+        self.assertTrue(5 in res[0])
         
         # Start date but no end date:
-        res = index._apply_index({'eventual': {'start': DateTime('2011/4/6 20:00 UTC'),}})
+        res = index._apply_index({'event': {'start': DateTime('2011/4/6 20:00 UTC'),}})
         self.assertEqual(len(res[0]), 3)
-        self.assertEqual(res[0][0], 3)
-        self.assertEqual(res[0][1], 4)
-        self.assertEqual(res[0][2], 5)
+        self.assertTrue(3 in res[0])
+        self.assertTrue(4 in res[0])
+        self.assertTrue(5 in res[0])
         
         # End date but no start date:
-        res = index._apply_index({'eventual': {'end': DateTime('2011/4/6 20:00 UTC'),}})
+        res = index._apply_index({'event': {'end': DateTime('2011/4/6 20:00 UTC'),}})
         self.assertEqual(len(res[0]), 2)
-        self.assertEqual(res[0][0], 1)
-        self.assertEqual(res[0][1], 2)
+        self.assertTrue(1 in res[0])
+        self.assertTrue(2 in res[0])
         
     def test_unindex(self):
         test_objects = {
@@ -152,19 +152,19 @@ class EventIndexTests(unittest.TestCase):
             
         # Return all
         res = index._apply_index({})
-        self.assertEqual(len(res[0]), 1)
+        self.assertTrue(1 in res[0])
         
         # Return one
-        res = index._apply_index({'eventual': {'start': datetime(2011, 4, 5, 12, 0),
+        res = index._apply_index({'event': {'start': datetime(2011, 4, 5, 12, 0),
                                                'end': datetime(2011, 4, 5, 13, 0)}})
         self.assertEqual(len(res[0]), 1)
-        self.assertEqual(res[0][0], 1)
+        self.assertTrue(1 in res[0])
 
         # Same one, twenty days later
-        res = index._apply_index({'eventual': {'start': datetime(2011, 4, 25, 12, 0),
+        res = index._apply_index({'event': {'start': datetime(2011, 4, 25, 12, 0),
                                                'end': datetime(2011, 4, 25, 13, 0)}})
         self.assertEqual(len(res[0]), 1)
-        self.assertEqual(res[0][0], 1)
+        self.assertTrue(1 in res[0])
         
 
 def test_suite():
