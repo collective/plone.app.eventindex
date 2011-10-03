@@ -2,7 +2,7 @@ from copy import deepcopy
 from zope.interface import implements
 
 from BTrees.Length import Length
-from BTrees.IIBTree import intersection, union, IISet
+from BTrees.IIBTree import intersection, union, IITreeSet
 from BTrees.IOBTree import IOBTree
 from BTrees.OOBTree import OOBTree
 
@@ -135,14 +135,14 @@ class EventIndex(SimpleItem):
         ### 3. Store everything in the indexes:
         row = self._start2uid.get(start_value, None)
         if row is None:
-            row = IISet((documentId,))
+            row = IITreeSet((documentId,))
             self._start2uid[start_value] = row
         else:
             row.insert(documentId)
 
         row = self._end2uid.get(end_value, None)
         if row is None:
-            row = IISet((documentId,))
+            row = IITreeSet((documentId,))
             self._end2uid[end_value] = row
         else:
             row.insert(documentId)
@@ -200,7 +200,7 @@ class EventIndex(SimpleItem):
         ZCatalog's search method.
         """
         if not request.has_key(self._id): # 'in' doesn't work with this object
-            return IISet(self._uid2end.keys()), ()
+            return IITreeSet(self._uid2end.keys()), ()
 
         start = request[self._id].get('start')
         if isinstance(start, DateTime):
@@ -216,11 +216,11 @@ class EventIndex(SimpleItem):
         try:
             maxkey = self._end2uid.maxKey()
         except ValueError: # No events at all
-            return IISet(), used_fields
+            return IITreeSet(), used_fields
         if start is None:
             # Begin is None, so we need to search right from the start.
             # This means we must return *all* uids.
-            start_uids = IISet(self._uid2end.keys())
+            start_uids = IITreeSet(self._uid2end.keys())
         else:
             used_fields += (self.start_attr,)
             start = start.utctimetuple()
@@ -233,12 +233,12 @@ class EventIndex(SimpleItem):
                 else:
                     excludemin = False
 
-                start_uids = IISet()
+                start_uids = IITreeSet()
                 for row in self._end2uid.values(minkey, maxkey, excludemin=excludemin):
                     start_uids = union(start_uids, row)
             except ValueError:
                 # No events
-                return IISet(), used_fields
+                return IITreeSet(), used_fields
 
         # Find those who do not start after the end.
         if end is not None:
@@ -246,7 +246,7 @@ class EventIndex(SimpleItem):
             minkey = self._start2uid.minKey()
             end = end.utctimetuple()
             try:
-                end_uids = IISet()
+                end_uids = IITreeSet()
                 for row in self._start2uid.values(minkey, end):
                     end_uids = union(end_uids, row)
 
@@ -257,7 +257,7 @@ class EventIndex(SimpleItem):
 
             except ValueError:
                 # No events
-                return IISet(), used_fields
+                return IITreeSet(), used_fields
             result = intersection(start_uids, end_uids)
         else:
             # No end specified, take all:
@@ -266,7 +266,7 @@ class EventIndex(SimpleItem):
         # Recurring events will this far match if the period is between
         # the first event and the last event. But we need to match only if
         # the event is actually occuring during the period.
-        filtered_result = IISet()
+        filtered_result = IITreeSet()
         used_recurrence = False
 
         for documentId in result:
