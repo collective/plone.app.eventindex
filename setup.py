@@ -25,7 +25,7 @@ setup(name='plone.app.eventindex',
       zip_safe=False,
       install_requires=[
           'setuptools',
-          'python-dateutil',
+          'python-dateutil<2.0',
           'Zope2',
           'plone.event',
       ],
