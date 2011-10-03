@@ -2,7 +2,7 @@
 
 import sys, re
 
-pattern = '^BEGIN:VEVENT|^END:VEVENT|^DTSTART;|^DTEND;|^DURATION;|^RRULE;'.encode()
+pattern = '^BEGIN:VEVENT|^END:VEVENT|^DTSTART|^DTEND|^DURATION|^RRULE'.encode()
 match = re.compile(pattern)
 
 if __name__ == '__main__':
