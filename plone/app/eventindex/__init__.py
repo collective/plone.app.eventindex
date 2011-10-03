@@ -34,9 +34,9 @@ class EventIndex(SimpleItem):
 
     def __init__(self, id, extra=None, caller=None):
         self._id = id
-        self.start_attr = extra['start_attr'] or 'start'
-        self.end_attr = extra['end_attr'] or 'end'
-        self.recurrence_attr = extra['recurrence_attr'] or 'recurrence'
+        self.start_attr = extra and extra['start_attr'] or 'start'
+        self.end_attr = extra and extra['end_attr'] or 'end'
+        self.recurrence_attr = extra and extra['recurrence_attr'] or 'recurrence'
         self.clear()
 
     def clear(self):
@@ -177,7 +177,7 @@ class EventIndex(SimpleItem):
         del self._uid2duration[documentId]
         del self._uid2recurrence[documentId]
 
-    def _apply_index(self, request):
+    def _apply_index(self, request, resultset=None):
         """Apply the index to query parameters given in 'request'.
 
         The argument should be a mapping object.
@@ -240,6 +240,11 @@ class EventIndex(SimpleItem):
                 # No events
                 return IITreeSet(), used_fields
 
+        # XXX At this point an intersection with the resultset might be
+        # beneficial. It would stop us from calculating the recurrence 
+        # of ids that won't be returned. It could be done after the
+        # intersection with end_uids below as well, performance tests will tell.
+        
         # Find those who do not start after the end.
         if end is not None:
             used_fields += (self.end_attr,)
