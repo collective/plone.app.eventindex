@@ -2,7 +2,8 @@
 
 import sys, re
 
-match = re.compile('^BEGIN:VEVENT|^END:VEVENT|^DTSTART;|^DTEND;|^DURATION;|^RRULE;')
+pattern = '^BEGIN:VEVENT|^END:VEVENT|^DTSTART;|^DTEND;|^DURATION;|^RRULE;'.encode()
+match = re.compile(pattern)
 
 if __name__ == '__main__':
 
@@ -13,15 +14,15 @@ if __name__ == '__main__':
         infile = sys.stdin
         sys.stderr.write("Using STDIN as input\n")
     else:
-        infile = open(sys.argv[1], 'rt')
+        infile = open(sys.argv[1], 'rb')
 
     if len(sys.argv) <= 2  or sys.argv[2] == '-':
         outfile = sys.stdout
         sys.stderr.write("Using STDOUT as output\n")
     else:
-        outfile = open(sys.argv[2], 'wt')
+        outfile = open(sys.argv[2], 'wb')
 
-    for line in infile.xreadlines():
+    for line in infile.readlines():
         line = line.upper()
         if match.match(line):
             outfile.write(line)
