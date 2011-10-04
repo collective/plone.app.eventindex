@@ -303,10 +303,11 @@ class EventIndex(SimpleItem):
                 event_end = None
 
             for occurrence in recurrence._iter():
-                if event_start is not None and occurrence < event_start:
+                utc_occurrence = datetime(*occurrence.utctimetuple()[:6])
+                if event_start is not None and utc_occurrence < event_start:
                     # XXX we should add a counter and break after 10000 occurrences.
                     continue
-                if event_end is not None and occurrence > event_end:
+                if event_end is not None and utc_occurrence > event_end:
                     break
 
                 # The start of this occurrence starts between the start and end date of
