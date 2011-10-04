@@ -238,6 +238,25 @@ class EventIndexTests(unittest.TestCase):
         self.assertTrue(1 in res[0])
         self.assertTrue(2 in res[0])
 
+    def test_recurrence_with_timezone(self):
+        helsinki = timezone('Europe/Helsinki')
+
+        index = EventIndex('event')
+        index.index_object(1, TestOb(
+            name='a',
+            start=helsinki.localize(datetime(2011, 10, 3, 15, 40)),
+            end=helsinki.localize(datetime(2011, 10, 3, 18, 34)),
+            recurrence='RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5'))
+
+        res = index._apply_index({
+            'event': {
+                'start': helsinki.localize(datetime(2011, 10, 3)),
+                'end': helsinki.localize(datetime(2011, 12, 10)),
+            }
+        })
+        self.assertEqual(len(res[0]), 1)
+        self.assertTrue(1 in res[0])
+
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(EventIndexTests))
