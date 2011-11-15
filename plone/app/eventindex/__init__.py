@@ -1,22 +1,17 @@
-from copy import deepcopy
-from zope.interface import implements
-
-from BTrees.Length import Length
-from BTrees.IIBTree import intersection, union, IITreeSet
-from BTrees.IOBTree import IOBTree
-from BTrees.OOBTree import OOBTree
-
-from DateTime import DateTime
-
-from OFS.SimpleItem import SimpleItem
 from App.special_dtml import DTMLFile
-
+from BTrees.IIBTree import IITreeSet
+from BTrees.IIBTree import intersection
+from BTrees.IIBTree import union
+from BTrees.IOBTree import IOBTree
+from BTrees.Length import Length
+from BTrees.OOBTree import OOBTree
+from DateTime import DateTime
+from OFS.SimpleItem import SimpleItem
+from Products.PluginIndexes.interfaces import IPluggableIndex
 from datetime import datetime
 from dateutil import rrule
-from plone.event.recurrence import recurrence_sequence_ical
+from zope.interface import implements
 
-from Products.PluginIndexes.interfaces import IPluggableIndex
-from Products.PluginIndexes.interfaces import ISortIndex
 
 class EventIndex(SimpleItem):
 
@@ -44,8 +39,8 @@ class EventIndex(SimpleItem):
         self._length = Length()
         self._end2uid = OOBTree()
         self._start2uid = OOBTree()
-        self._uid2end = IOBTree() # Contains the index used in _end2uid
-        self._uid2duration = IOBTree() # Contains the duration
+        self._uid2end = IOBTree()  # Contains the index used in _end2uid
+        self._uid2duration = IOBTree()  # Contains the duration
         self._uid2start = IOBTree()
         self._uid2recurrence = IOBTree()
 
@@ -199,7 +194,7 @@ class EventIndex(SimpleItem):
         The resultset argument contains the resultset, as already calculated by
         ZCatalog's search method.
         """
-        if not request.has_key(self._id): # 'in' doesn't work with this object
+        if not request.has_key(self._id):  # 'in' doesn't work with this object
             return IITreeSet(self._uid2end.keys()), ()
 
         start = request[self._id].get('start')
@@ -215,7 +210,7 @@ class EventIndex(SimpleItem):
         # Find those who do not end befores the start.
         try:
             maxkey = self._end2uid.maxKey()
-        except ValueError: # No events at all
+        except ValueError:  # No events at all
             return IITreeSet(), used_fields
         if start is None:
             # Begin is None, so we need to search right from the start.
@@ -241,10 +236,10 @@ class EventIndex(SimpleItem):
                 return IITreeSet(), used_fields
 
         # XXX At this point an intersection with the resultset might be
-        # beneficial. It would stop us from calculating the recurrence 
+        # beneficial. It would stop us from calculating the recurrence
         # of ids that won't be returned. It could be done after the
         # intersection with end_uids below as well, performance tests will tell.
-        
+
         # Find those who do not start after the end.
         if end is not None:
             used_fields += (self.end_attr,)
@@ -280,7 +275,6 @@ class EventIndex(SimpleItem):
                 # This event isn't recurring, so it's a match:
                 filtered_result.add(documentId)
                 continue
-
 
             used_recurrence = True
             match = False

@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
-import sys, re
+import re
+import sys
+
 
 pattern = '^BEGIN:VEVENT|^END:VEVENT|^DTSTART|^DTEND|^DURATION|^RRULE'.encode()
 match = re.compile(pattern)
