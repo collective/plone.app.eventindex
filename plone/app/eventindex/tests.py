@@ -1,9 +1,10 @@
-import unittest
-from datetime import datetime
 from DateTime import DateTime
+from datetime import datetime
+from plone.app.eventindex import EventIndex
 from pytz import timezone
 
-from plone.app.eventindex import EventIndex
+import unittest2 as unittest
+
 
 # Handy when debugging timezoned events:
 def utcify(o):
@@ -257,7 +258,7 @@ class EventIndexTests(unittest.TestCase):
         self.assertEqual(len(res[0]), 1)
         self.assertTrue(1 in res[0])
 
-def test_suite():
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(EventIndexTests))
-    return suite
+# def test_suite():
+#     suite = unittest.TestSuite()
+#     suite.addTest(unittest.makeSuite(EventIndexTests))
+#     return suite
