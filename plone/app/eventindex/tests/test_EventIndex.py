@@ -2,6 +2,10 @@ import mock
 import unittest2 as unittest
 
 
+class MockRec(object):
+    pass
+
+
 class TestEventIndex(unittest.TestCase):
 
     def createInstance(self, extra=None):
@@ -149,5 +153,131 @@ class TestEventIndex(unittest.TestCase):
         obj.method = date_time
         self.assertEqual(instance._getattr('method', obj), 'datetime')
 
-    def test_index_object(self):
+    # @mock.patch('plone.app.eventindex.rrule')
+    @mock.patch('plone.app.eventindex.IITreeSet')
+    def test_index_object(self, IITreeSet):
         instance = self.createInstance()
+        ## Test when start, end and recurrence is None
+        documentId = 2
+        obj = mock.MagicMock()
+        obj.start = None
+        obj.end = None
+        obj.recurrence = None
+        self.assertFalse(instance.index_object(documentId, obj))
+        ## Test when start is not None, but end and recurrence is None
+        obj.start = mock.MagicMock()
+        obj.start().__sub__.return_value = 3
+        obj.start().utctimetuple.return_value = 'Start Value'
+        ## row is None
+        self.assertTrue(instance.index_object(documentId, obj))
+        self.assertEqual(len(instance._uid2start), 1)
+        self.assertEqual(instance._uid2start[documentId], 'Start Value')
+        self.assertEqual(len(instance._uid2recurrence), 1)
+        self.assertFalse(instance._uid2recurrence[documentId])
+        self.assertEqual(len(instance._uid2end), 1)
+        self.assertEqual(instance._uid2end[documentId], 'Start Value')
+        self.assertEqual(len(instance._uid2duration), 1)
+        self.assertEqual(instance._uid2duration[documentId], 3)
+        ## Test start and end are not None and recurrence is None
+        obj.end = mock.Mock()
+        obj.end().utctimetuple.return_value = 'End Value'
+        self.assertTrue(instance.index_object(documentId, obj))
+        self.assertEqual(instance._uid2end[documentId], 'End Value')
+        ## start_row is not None
+        instance._start2uid = mock.Mock()
+        row = mock.Mock()
+        instance._start2uid = {'Start Value': row}
+        self.assertTrue(instance.index_object(documentId, obj))
+        self.assertEqual(row.insert.call_count, 1)
+        ## end_row is not None
+        instance._end2uid = mock.Mock()
+        instance._end2uid = {'End Value': row}
+        row.insert.reset_mock()
+        self.assertTrue(instance.index_object(documentId, obj))
+        self.assertEqual(row.insert.call_count, 2)
+        ## recurrence is not None
+        obj.recurrence = mock.Mock()
+        self.assertTrue(instance.index_object(documentId, obj))
+
+    @mock.patch('plone.app.eventindex.rrule')
+    @mock.patch('plone.app.eventindex.IITreeSet')
+    def test_index_object_recurrence_basestring(self, IITreeSet, rrule):
+        instance = self.createInstance()
+        documentId = 2
+        obj = mock.MagicMock()
+        obj.start = mock.Mock()
+        obj.start().utctimetuple.return_value = 'Start Value'
+        obj.end = mock.MagicMock()
+        obj.end().utctimetuple.return_value = 'End Value'
+        obj.end().__sub__.return_value = 3
+        obj.recurrence.return_value = mock.Mock(spec=basestring)
+        dur = mock.MagicMock()
+        duration = mock.Mock()
+        dur.__add__.return_value = duration
+        rule = mock.Mock()
+        rrule.rrulestr.return_value = rule
+        rrule.rrulestr()._iter.return_value = [dur]
+        duration.utctimetuple.return_value = 'last'
+        self.assertTrue(instance.index_object(documentId, obj))
+        self.assertEqual(len(instance._uid2start), 1)
+        self.assertEqual(instance._uid2start[documentId], 'Start Value')
+        self.assertEqual(len(instance._uid2recurrence), 1)
+        self.assertEqual(instance._uid2recurrence[documentId], rule)
+        self.assertEqual(len(instance._uid2end), 1)
+        self.assertEqual(instance._uid2end[documentId], 'last')
+        self.assertEqual(len(instance._uid2duration), 1)
+        self.assertEqual(instance._uid2duration[documentId], 3)
+        rule.count = None
+        self.assertTrue(instance.index_object(documentId, obj))
+        self.assertEqual(instance._uid2end[documentId], 'last')
+        rule.until = None
+        self.assertTrue(instance.index_object(documentId, obj))
+        self.assertFalse(instance._uid2end[documentId])
+
+    @mock.patch('plone.app.eventindex.IITreeSet')
+    def test_index_object_recurrence_rrulebase(self, IITreeSet):
+        instance = self.createInstance()
+        documentId = 2
+        obj = mock.MagicMock()
+        obj.start = mock.Mock()
+        obj.start().utctimetuple.return_value = 'Start Value'
+        obj.end = mock.MagicMock()
+        obj.end().utctimetuple.return_value = 'End Value'
+        obj.end().__sub__.return_value = 3
+        from dateutil.rrule import rrulebase
+        rule = mock.Mock(spec=rrulebase)
+        obj.recurrence.return_value = rule
+        rule.count = rule.until = None
+        self.assertTrue(instance.index_object(documentId, obj))
+        self.assertEqual(len(instance._uid2start), 1)
+        self.assertEqual(instance._uid2start[documentId], 'Start Value')
+        self.assertEqual(len(instance._uid2recurrence), 1)
+        self.assertEqual(instance._uid2recurrence[documentId], rule)
+        self.assertEqual(len(instance._uid2end), 1)
+        self.assertFalse(instance._uid2end[documentId])
+        self.assertEqual(len(instance._uid2duration), 1)
+        self.assertEqual(instance._uid2duration[documentId], 3)
+
+    def test_unindex_object__uid2start_empty(self):
+        instance = self.createInstance()
+        documentId = 2
+        instance.unindex_object(documentId)
+
+    def test_unindex_object__uid2start_not_empty_not_exist(self):
+        instance = self.createInstance()
+        documentId = 2
+        instance._uid2start = {1: 'ONE'}
+        instance.unindex_object(documentId)
+
+    def test_unindex_object__uid2start_not_empty_do_exist(self):
+        instance = self.createInstance()
+        documentId = 2
+        instance._uid2start = {2: 'TWO'}
+        instance.unindex_object(documentId)
+        self.assertFalse(instance._uid2start)
+
+    # def test_unindex_object__uid2start_start2uid(self):
+    #     instance = self.createInstance()
+    #     documentId = 2
+    #     instance._uid2start = {2: 'TWO'}
+    #     instance._start2uid = {'TWO': 'TWO'}

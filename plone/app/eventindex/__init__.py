@@ -151,26 +151,34 @@ class EventIndex(SimpleItem):
 
     def unindex_object(self, documentId):
         """Remove the documentId from the index."""
-        start = self._uid2start[documentId]
-        del self._uid2start[documentId]
+        # start = self._uid2start[documentId]
+        # del self._uid2start[documentId]
+        start = self._uid2start.pop(documentId, 'No ID found')
 
-        row = self._start2uid[start]
-        if documentId in row:
-            row.remove(documentId)
-        if len(row) == 0:
-            del self._start2uid[start]
+        # row = self._start2uid[start]
+        row = self._start2uid.get(start)
+        if row:
+            if documentId in row:
+                row.remove(documentId)
+            if len(row) == 0:
+                del self._start2uid[start]
 
-        end = self._uid2end[documentId]
-        del self._uid2end[documentId]
+        # end = self._uid2end[documentId]
+        # del self._uid2end[documentId]
+        end = self._uid2end.pop(documentId, 'No ID found')
 
-        row = self._end2uid[end]
-        if documentId in row:
-            row.remove(documentId)
-        if len(row) == 0:
-            del self._end2uid[end]
+        # row = self._end2uid[end]
+        row = self._end2uid.get(end)
+        if row:
+            if documentId in row:
+                row.remove(documentId)
+            if len(row) == 0:
+                del self._end2uid[end]
 
-        del self._uid2duration[documentId]
-        del self._uid2recurrence[documentId]
+        # del self._uid2duration[documentId]
+        # del self._uid2recurrence[documentId]
+        self._uid2duration.pop(documentId, 'No ID found')
+        self._uid2recurrence.pop(documentId, 'No ID found')
 
     def _apply_index(self, request, resultset=None):
         """Apply the index to query parameters given in 'request'.
