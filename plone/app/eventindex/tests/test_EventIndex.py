@@ -258,26 +258,33 @@ class TestEventIndex(unittest.TestCase):
         self.assertEqual(len(instance._uid2duration), 1)
         self.assertEqual(instance._uid2duration[documentId], 3)
 
-    def test_unindex_object__uid2start_empty(self):
+    def test_remove_id(self):
         instance = self.createInstance()
         documentId = 2
-        instance.unindex_object(documentId)
+        point = 'start'
+        instance._uid2start = mock.Mock()
+        instance.remove_id(documentId, point)
+        self.assertTrue(instance._uid2start.pop.called)
+        instance._uid2start.pop.return_value = 3
+        instance._start2uid = mock.Mock()
+        instance._start2uid.get.return_value = [1]
+        instance.remove_id(documentId, point)
+        self.assertTrue(instance._start2uid.get.called)
+        self.assertEqual(instance._start2uid.get(), [1])
+        instance._start2uid.get.return_value = [1, 2, 3, 4]
+        instance.remove_id(documentId, point)
+        self.assertEqual(instance._start2uid.get(), [1, 3, 4])
+        documentId = 3
+        instance.remove_id(documentId, point)
+        self.assertEqual(instance._start2uid.get(), [1, 4])
 
-    def test_unindex_object__uid2start_not_empty_not_exist(self):
+    def test_unindex_object(self):
         instance = self.createInstance()
-        documentId = 2
-        instance._uid2start = {1: 'ONE'}
+        documentId = mock.Mock()
+        instance.remove_id = mock.Mock()
+        instance._uid2duration = mock.Mock()
+        instance._uid2recurrence = mock.Mock()
         instance.unindex_object(documentId)
-
-    def test_unindex_object__uid2start_not_empty_do_exist(self):
-        instance = self.createInstance()
-        documentId = 2
-        instance._uid2start = {2: 'TWO'}
-        instance.unindex_object(documentId)
-        self.assertFalse(instance._uid2start)
-
-    # def test_unindex_object__uid2start_start2uid(self):
-    #     instance = self.createInstance()
-    #     documentId = 2
-    #     instance._uid2start = {2: 'TWO'}
-    #     instance._start2uid = {'TWO': 'TWO'}
+        self.assertEqual(instance.remove_id.call_count, 2)
+        self.assertTrue(instance._uid2duration.pop.called)
+        self.assertTrue(instance._uid2recurrence.pop.called)

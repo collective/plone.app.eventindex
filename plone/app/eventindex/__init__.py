@@ -149,34 +149,31 @@ class EventIndex(SimpleItem):
 
         return True
 
+    def remove_id(self, documentId, point):
+        """Remove documentId based on point.
+        Helper method for unindex_object method.
+
+        :param documentId: Integer
+        :type documentId: int
+
+        :param point: start or end
+        :type point: str
+        """
+        attr = '_uid2{0}'.format(point)
+        position = getattr(self, attr).pop(documentId, 'No ID found')
+        attr = '_{0}2uid'.format(point)
+        pos = getattr(self, attr)
+        row =  pos.get(position)
+        if row:
+            if documentId in row:
+                row.remove(documentId)
+            if len(row) == 0:
+                pos.pop(position, 'Not Found')
+
     def unindex_object(self, documentId):
         """Remove the documentId from the index."""
-        # start = self._uid2start[documentId]
-        # del self._uid2start[documentId]
-        start = self._uid2start.pop(documentId, 'No ID found')
-
-        # row = self._start2uid[start]
-        row = self._start2uid.get(start)
-        if row:
-            if documentId in row:
-                row.remove(documentId)
-            if len(row) == 0:
-                del self._start2uid[start]
-
-        # end = self._uid2end[documentId]
-        # del self._uid2end[documentId]
-        end = self._uid2end.pop(documentId, 'No ID found')
-
-        # row = self._end2uid[end]
-        row = self._end2uid.get(end)
-        if row:
-            if documentId in row:
-                row.remove(documentId)
-            if len(row) == 0:
-                del self._end2uid[end]
-
-        # del self._uid2duration[documentId]
-        # del self._uid2recurrence[documentId]
+        self.remove_id(documentId, 'start')
+        self.remove_id(documentId, 'end')
         self._uid2duration.pop(documentId, 'No ID found')
         self._uid2recurrence.pop(documentId, 'No ID found')
 
