@@ -191,6 +191,56 @@ class EventIndex(SimpleItem):
             pos = pos.utcdatetime()
         return pos
 
+    def aaa(self, result, start, end, used_fields):
+        filtered_result = IITreeSet()
+        # used_recurrence = False
+
+        for documentId in result:
+            recurrence = self._uid2recurrence.get(documentId)
+            if recurrence is None:
+                # This event isn't recurring, so it's a match:
+                filtered_result.add(documentId)
+                continue
+
+            # used_recurrence = True
+            match = False
+            # This is a possible place where optimizations can be done if
+            # necessary. For example, for periods where the start and end
+            # date is the same, we can first check if the start time and
+            # and time of the date falls inbetween the start and end times
+            # of the period, so to avoid expansion. But most likely this
+            # will have a very small impact on speed, so I skip this until
+            # it actually becomes a problem.
+
+            if start is not None:
+                event_start = datetime(*self._uid2start[documentId][:6])
+            else:
+                event_start = None
+            if end is not None:
+                event_duration = self._uid2duration[documentId]
+                event_end = event_start + event_duration
+            else:
+                event_end = None
+
+            for occurrence in recurrence._iter():
+                utc_occurrence = datetime(*occurrence.utctimetuple()[:6])
+                if event_start is not None and utc_occurrence < event_start:
+                    # XXX we should add a counter and break after 10000 occurrences.
+                    continue
+                if event_end is not None and utc_occurrence > event_end:
+                    break
+
+                # The start of this occurrence starts between the start and end date of
+                # the query:
+                match = True
+                break
+
+            if match:
+                filtered_result.add(documentId)
+            # if used_recurrence:
+            used_fields += (self.recurrence_attr,)
+        return filtered_result, used_fields
+
     def _apply_index(self, request, resultset=None):
         """Apply the index to query parameters given in 'request'.
 
@@ -283,58 +333,7 @@ class EventIndex(SimpleItem):
             # No end specified, take all:
             result = start_uids
 
-        # Recurring events will this far match if the period is between
-        # the first event and the last event. But we need to match only if
-        # the event is actually occuring during the period.
-        filtered_result = IITreeSet()
-        used_recurrence = False
-
-        for documentId in result:
-            recurrence = self._uid2recurrence.get(documentId)
-            if recurrence is None:
-                # This event isn't recurring, so it's a match:
-                filtered_result.add(documentId)
-                continue
-
-            used_recurrence = True
-            match = False
-            # This is a possible place where optimizations can be done if
-            # necessary. For example, for periods where the start and end
-            # date is the same, we can first check if the start time and
-            # and time of the date falls inbetween the start and end times
-            # of the period, so to avoid expansion. But most likely this
-            # will have a very small impact on speed, so I skip this until
-            # it actually becomes a problem.
-
-            if start is not None:
-                event_start = datetime(*self._uid2start[documentId][:6])
-            else:
-                event_start = None
-            if end is not None:
-                event_duration = self._uid2duration[documentId]
-                event_end = event_start + event_duration
-            else:
-                event_end = None
-
-            for occurrence in recurrence._iter():
-                utc_occurrence = datetime(*occurrence.utctimetuple()[:6])
-                if event_start is not None and utc_occurrence < event_start:
-                    # XXX we should add a counter and break after 10000 occurrences.
-                    continue
-                if event_end is not None and utc_occurrence > event_end:
-                    break
-
-                # The start of this occurrence starts between the start and end date of
-                # the query:
-                match = True
-                break
-
-            if match:
-                filtered_result.add(documentId)
-            if used_recurrence:
-                used_fields += (self.recurrence_attr,)
-
-        return filtered_result, used_fields
+        return self.aaa(result, start, end, used_fields)
 
     def numObjects(self):
         """Return the number of indexed objects."""

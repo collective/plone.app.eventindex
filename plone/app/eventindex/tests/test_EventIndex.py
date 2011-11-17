@@ -325,6 +325,155 @@ class TestEventIndex(unittest.TestCase):
         )
 
     @mock.patch('plone.app.eventindex.IITreeSet')
+    def test_aaa_results_empty(self, IITreeSet):
+        instance = self.createInstance()
+        IITreeSet.return_value = 'iitreeset'
+        result = []
+        start = mock.Mock()
+        end = mock.Mock()
+        used_fields = mock.Mock()
+        self.assertEqual(
+            instance.aaa(result, start, end, used_fields),
+            ('iitreeset', used_fields)
+        )
+
+    @mock.patch('plone.app.eventindex.IITreeSet')
+    def test_aaa_reuccurence_none(self, IITreeSet):
+        instance = self.createInstance()
+        result = [1, 2, 3, 4]
+        start = None
+        end = None
+        used_fields = mock.Mock()
+        self.assertEqual(
+            instance.aaa(result, start, end, used_fields),
+            (IITreeSet(), used_fields)
+        )
+        self.assertEqual(IITreeSet().add.call_count, 4)
+
+    @mock.patch('plone.app.eventindex.IITreeSet')
+    def test_aaa_reuccurence_not_none(self, IITreeSet):
+        instance = self.createInstance()
+        result = [1, 2, 3, 4]
+        start = None
+        end = None
+        used_field = mock.Mock()
+        used_fields = (used_field,)
+        instance._uid2recurrence = mock.Mock()
+        instance._uid2recurrence.get.return_value = mock.Mock()
+        occurence = mock.Mock()
+        occurence.utctimetuple.return_value = (2006, 6, 14, 13, 0, 0)
+        instance._uid2recurrence.get()._iter.return_value = [occurence]
+        self.assertEqual(
+            instance.aaa(result, start, end, used_fields),
+            (
+                IITreeSet(),
+                (
+                    used_field,
+                    'recurrence',
+                    'recurrence',
+                    'recurrence',
+                    'recurrence'
+                )
+            )
+        )
+        self.assertEqual(IITreeSet().add.call_count, 4)
+
+    @mock.patch('plone.app.eventindex.IITreeSet')
+    def test_aaa_reuccurence_not_iterable(self, IITreeSet):
+        instance = self.createInstance()
+        result = [1, 2, 3, 4]
+        start = None
+        end = None
+        used_field = mock.Mock()
+        used_fields = (used_field,)
+        instance._uid2recurrence = mock.Mock()
+        instance._uid2recurrence.get.return_value = mock.Mock()
+        instance._uid2recurrence.get()._iter.return_value = []
+        self.assertEqual(
+            instance.aaa(result, start, end, used_fields),
+            (
+                IITreeSet(),
+                (
+                    used_field,
+                    'recurrence',
+                    'recurrence',
+                    'recurrence',
+                    'recurrence'
+                )
+            )
+        )
+        self.assertEqual(IITreeSet().add.call_count, 0)
+
+    @mock.patch('plone.app.eventindex.IITreeSet')
+    def test_aaa_reuccurence_event_start_bigger(self, IITreeSet):
+        instance = self.createInstance()
+        result = [1, 2, 3, 4]
+        start = mock.Mock()
+        end = None
+        used_field = mock.Mock()
+        used_fields = (used_field,)
+        dt = (2006, 6, 15, 13, 0, 0)
+        instance._uid2start = dict(
+            [(key, dt) for key in result]
+        )
+        occurence = mock.Mock()
+        occurence.utctimetuple.return_value = (2006, 6, 14, 13, 0, 0)
+        instance._uid2recurrence = mock.Mock()
+        instance._uid2recurrence.get.return_value = mock.Mock()
+        instance._uid2recurrence.get()._iter.return_value = [occurence]
+        self.assertEqual(
+            instance.aaa(result, start, end, used_fields),
+            (
+                IITreeSet(),
+                (
+                    used_field,
+                    'recurrence',
+                    'recurrence',
+                    'recurrence',
+                    'recurrence'
+                )
+            )
+        )
+        self.assertEqual(IITreeSet().add.call_count, 0)
+
+    @mock.patch('plone.app.eventindex.IITreeSet')
+    def test_aaa_reuccurence_event_start_smaller(self, IITreeSet):
+        instance = self.createInstance()
+        result = [1, 2, 3, 4]
+        start = mock.Mock()
+        end = mock.Mock()
+        used_field = mock.Mock()
+        used_fields = (used_field,)
+        dt = (2006, 6, 11, 13, 0, 0)
+        instance._uid2start = dict(
+            [(key, dt) for key in result]
+        )
+        from datetime import datetime
+        dur = datetime(2006, 6, 14) - datetime(2006, 6, 13)
+        instance._uid2duration = dict(
+            [(key, dur) for key in result]
+        )
+        occurence = mock.Mock()
+        occurence.utctimetuple.return_value = (2006, 6, 14, 13, 0, 0)
+        instance._uid2recurrence = mock.Mock()
+        instance._uid2recurrence.get.return_value = mock.Mock()
+        instance._uid2recurrence.get()._iter.return_value = [occurence]
+        self.assertEqual(
+            instance.aaa(result, start, end, used_fields),
+            (
+                IITreeSet(),
+                (
+                    used_field,
+                    'recurrence',
+                    'recurrence',
+                    'recurrence',
+                    'recurrence'
+                )
+            )
+        )
+        self.assertEqual(IITreeSet().add.call_count, 0)
+
+    @mock.patch('plone.app.eventindex.IITreeSet')
     def test__apply_index__no_id(self, IITreeSet):
         instance = self.createInstance()
         request = mock.Mock()
@@ -334,6 +483,30 @@ class TestEventIndex(unittest.TestCase):
             instance._apply_index(request),
             ('iitreeset', ())
         )
+
+    @mock.patch('plone.app.eventindex.IITreeSet')
+    def test__apply_index__with_id_without_maxkey(self, IITreeSet):
+        instance = self.createInstance()
+        request = mock.Mock()
+        instance.get_position = mock.Mock()
+        instance._end2uid = mock.Mock()
+        instance._end2uid.maxKey = mock.Mock(side_effect=ValueError)
+        IITreeSet.return_value = 'iitreeset'
+        self.assertEqual(
+            instance._apply_index(request),
+            ('iitreeset', ())
+        )
+
+    # @mock.patch('plone.app.eventindex.IITreeSet')
+    # def test__apply_index__with_start_none(self, IITreeSet):
+    #     instance = self.createInstance()
+    #     request = mock.Mock()
+    #     instance.get_position = mock.Mock(return_value=None)
+    #     IITreeSet.return_value = [1, 2, 3]
+    #     self.assertEqual(
+    #         instance._apply_index(request),
+    #         ('iitreeset', ())
+    #     )
 
     # def test__apply_index__with_id(self):
     #     instance = self.createInstance()
