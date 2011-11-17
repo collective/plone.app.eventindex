@@ -163,7 +163,7 @@ class EventIndex(SimpleItem):
         position = getattr(self, attr).pop(documentId, 'No ID found')
         attr = '_{0}2uid'.format(point)
         pos = getattr(self, attr)
-        row =  pos.get(position)
+        row =pos.get(position)
         if row:
             if documentId in row:
                 row.remove(documentId)
@@ -266,12 +266,6 @@ class EventIndex(SimpleItem):
         if not request.has_key(self._id):  # 'in' doesn't work with this object
             return IITreeSet(self._uid2end.keys()), ()
 
-        # start = request[self._id].get('start')
-        # if isinstance(start, DateTime):
-        #     start = start.utcdatetime()
-        # end = request[self._id].get('end')
-        # if isinstance(end, DateTime):
-        #     end = end.utcdatetime()
         start = self.get_position(request, 'start')
         end = self.get_position(request, 'end')
 
@@ -300,6 +294,7 @@ class EventIndex(SimpleItem):
 
                 start_uids = IITreeSet()
                 for row in self._end2uid.values(minkey, maxkey, excludemin=excludemin):
+
                     start_uids = union(start_uids, row)
             except ValueError:
                 # No events
