@@ -177,6 +177,20 @@ class EventIndex(SimpleItem):
         self._uid2duration.pop(documentId, 'No ID found')
         self._uid2recurrence.pop(documentId, 'No ID found')
 
+    def get_position(self, request, position):
+        """Get position from certain ID.
+
+        :param request: Request
+        :type request: object
+
+        :param position: start or end
+        :type position: str
+        """
+        pos = request[self._id].get(position)
+        if isinstance(pos, DateTime):
+            pos = pos.utcdatetime()
+        return pos
+
     def _apply_index(self, request, resultset=None):
         """Apply the index to query parameters given in 'request'.
 
@@ -202,17 +216,18 @@ class EventIndex(SimpleItem):
         if not request.has_key(self._id):  # 'in' doesn't work with this object
             return IITreeSet(self._uid2end.keys()), ()
 
-        start = request[self._id].get('start')
-        if isinstance(start, DateTime):
-            start = start.utcdatetime()
-
-        end = request[self._id].get('end')
-        if isinstance(end, DateTime):
-            end = end.utcdatetime()
+        # start = request[self._id].get('start')
+        # if isinstance(start, DateTime):
+        #     start = start.utcdatetime()
+        # end = request[self._id].get('end')
+        # if isinstance(end, DateTime):
+        #     end = end.utcdatetime()
+        start = self.get_position(request, 'start')
+        end = self.get_position(request, 'end')
 
         used_fields = ()
 
-        # Find those who do not end befores the start.
+        # Find those who do not end before the start.
         try:
             maxkey = self._end2uid.maxKey()
         except ValueError:  # No events at all

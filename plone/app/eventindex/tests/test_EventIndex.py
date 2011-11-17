@@ -288,3 +288,54 @@ class TestEventIndex(unittest.TestCase):
         self.assertEqual(instance.remove_id.call_count, 2)
         self.assertTrue(instance._uid2duration.pop.called)
         self.assertTrue(instance._uid2recurrence.pop.called)
+
+    def test_get_position_without_key(self):
+        instance = self.createInstance()
+        instance._id = 2
+        position = 'start'
+        request = {}
+        self.assertRaises(KeyError, lambda: instance.get_position(request, position))
+
+    def test_get_position_with_key(self):
+        instance = self.createInstance()
+        instance._id = 2
+        position = 'start'
+        pos = mock.Mock()
+        posi = mock.Mock()
+        pos.get.return_value = posi
+        request = {2: pos}
+        self.assertEqual(
+            instance.get_position(request, position),
+            posi
+        )
+
+    def test_get_positin_with_key_and_datetime_instance(self):
+        instance = self.createInstance()
+        instance._id = 2
+        position = 'start'
+        from DateTime import DateTime
+        pos = mock.Mock()
+        posi = mock.Mock(spec=DateTime)
+        pos.get.return_value = posi
+        pos.get().utcdatetime.return_value = 'utcdatetime'
+        request = {2: pos}
+        self.assertEqual(
+            instance.get_position(request, position),
+            'utcdatetime'
+        )
+
+    @mock.patch('plone.app.eventindex.IITreeSet')
+    def test__apply_index__no_id(self, IITreeSet):
+        instance = self.createInstance()
+        request = mock.Mock()
+        request.has_key.return_value = None
+        IITreeSet.return_value = 'iitreeset'
+        self.assertEqual(
+            instance._apply_index(request),
+            ('iitreeset', ())
+        )
+
+    # def test__apply_index__with_id(self):
+    #     instance = self.createInstance()
+    #     request = mock.Mock()
+    #     instance._apply_index(request)
