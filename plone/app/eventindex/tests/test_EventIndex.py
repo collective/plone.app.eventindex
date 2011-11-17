@@ -626,3 +626,9 @@ class TestEventIndex(unittest.TestCase):
         self.assertEqual(union.call_count, 3)
         self.assertTrue(intersection.called)
         self.assertTrue(instance.aaa.called)
+
+    def test_numObjects(self):
+        instance = self.createInstance()
+        instance._uid2start = mock.Mock()
+        instance._uid2start.keys.return_value = []
+        self.assertEqual(instance.numObjects(), 0)
