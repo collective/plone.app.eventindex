@@ -335,14 +335,14 @@ class TestEventIndex(unittest.TestCase):
         self.assertTrue(instance._uid2duration.pop.called)
         self.assertTrue(instance._uid2recurrence.pop.called)
 
-    def test_get_position_without_key(self):
+    def test__get_position_without_key(self):
         instance = self.createInstance()
         instance._id = 2
         position = 'start'
         request = {}
-        self.assertRaises(KeyError, lambda: instance.get_position(request, position))
+        self.assertRaises(KeyError, lambda: instance._get_position(request, position))
 
-    def test_get_position_with_key(self):
+    def test__get_position_with_key(self):
         instance = self.createInstance()
         instance._id = 2
         position = 'start'
@@ -351,7 +351,7 @@ class TestEventIndex(unittest.TestCase):
         pos.get.return_value = posi
         request = {2: pos}
         self.assertEqual(
-            instance.get_position(request, position),
+            instance._get_position(request, position),
             posi
         )
 
@@ -366,12 +366,12 @@ class TestEventIndex(unittest.TestCase):
         pos.get().utcdatetime.return_value = 'utcdatetime'
         request = {2: pos}
         self.assertEqual(
-            instance.get_position(request, position),
+            instance._get_position(request, position),
             'utcdatetime'
         )
 
     @mock.patch('plone.app.eventindex.IITreeSet')
-    def test_aaa_results_empty(self, IITreeSet):
+    def test__finalize_index_results_empty(self, IITreeSet):
         instance = self.createInstance()
         IITreeSet.return_value = 'iitreeset'
         result = []
@@ -379,25 +379,25 @@ class TestEventIndex(unittest.TestCase):
         end = mock.Mock()
         used_fields = mock.Mock()
         self.assertEqual(
-            instance.aaa(result, start, end, used_fields),
+            instance._finalize_index(result, start, end, used_fields),
             ('iitreeset', used_fields)
         )
 
     @mock.patch('plone.app.eventindex.IITreeSet')
-    def test_aaa_reuccurence_none(self, IITreeSet):
+    def test__finalize_index_reuccurence_none(self, IITreeSet):
         instance = self.createInstance()
         result = [1, 2, 3, 4]
         start = None
         end = None
         used_fields = mock.Mock()
         self.assertEqual(
-            instance.aaa(result, start, end, used_fields),
+            instance._finalize_index(result, start, end, used_fields),
             (IITreeSet(), used_fields)
         )
         self.assertEqual(IITreeSet().add.call_count, 4)
 
     @mock.patch('plone.app.eventindex.IITreeSet')
-    def test_aaa_reuccurence_not_none(self, IITreeSet):
+    def test__finalize_index_reuccurence_not_none(self, IITreeSet):
         instance = self.createInstance()
         result = [1, 2, 3, 4]
         start = None
@@ -410,7 +410,7 @@ class TestEventIndex(unittest.TestCase):
         occurence.utctimetuple.return_value = (2006, 6, 14, 13, 0, 0)
         instance._uid2recurrence.get()._iter.return_value = [occurence]
         self.assertEqual(
-            instance.aaa(result, start, end, used_fields),
+            instance._finalize_index(result, start, end, used_fields),
             (
                 IITreeSet(),
                 (
@@ -425,7 +425,7 @@ class TestEventIndex(unittest.TestCase):
         self.assertEqual(IITreeSet().add.call_count, 4)
 
     @mock.patch('plone.app.eventindex.IITreeSet')
-    def test_aaa_reuccurence_not_iterable(self, IITreeSet):
+    def test__finalize_index_reuccurence_not_iterable(self, IITreeSet):
         instance = self.createInstance()
         result = [1, 2, 3, 4]
         start = None
@@ -436,7 +436,7 @@ class TestEventIndex(unittest.TestCase):
         instance._uid2recurrence.get.return_value = mock.Mock()
         instance._uid2recurrence.get()._iter.return_value = []
         self.assertEqual(
-            instance.aaa(result, start, end, used_fields),
+            instance._finalize_index(result, start, end, used_fields),
             (
                 IITreeSet(),
                 (
@@ -451,7 +451,7 @@ class TestEventIndex(unittest.TestCase):
         self.assertEqual(IITreeSet().add.call_count, 0)
 
     @mock.patch('plone.app.eventindex.IITreeSet')
-    def test_aaa_reuccurence_event_start_bigger(self, IITreeSet):
+    def test__finalize_index_reuccurence_event_start_bigger(self, IITreeSet):
         instance = self.createInstance()
         result = [1, 2, 3, 4]
         start = mock.Mock()
@@ -468,7 +468,7 @@ class TestEventIndex(unittest.TestCase):
         instance._uid2recurrence.get.return_value = mock.Mock()
         instance._uid2recurrence.get()._iter.return_value = [occurence]
         self.assertEqual(
-            instance.aaa(result, start, end, used_fields),
+            instance._finalize_index(result, start, end, used_fields),
             (
                 IITreeSet(),
                 (
@@ -483,7 +483,7 @@ class TestEventIndex(unittest.TestCase):
         self.assertEqual(IITreeSet().add.call_count, 0)
 
     @mock.patch('plone.app.eventindex.IITreeSet')
-    def test_aaa_reuccurence_event_start_smaller(self, IITreeSet):
+    def test__finalize_index_reuccurence_event_start_smaller(self, IITreeSet):
         instance = self.createInstance()
         result = [1, 2, 3, 4]
         start = mock.Mock()
@@ -505,7 +505,7 @@ class TestEventIndex(unittest.TestCase):
         instance._uid2recurrence.get.return_value = mock.Mock()
         instance._uid2recurrence.get()._iter.return_value = [occurence]
         self.assertEqual(
-            instance.aaa(result, start, end, used_fields),
+            instance._finalize_index(result, start, end, used_fields),
             (
                 IITreeSet(),
                 (
@@ -534,7 +534,7 @@ class TestEventIndex(unittest.TestCase):
     def test__apply_index__with_id_without_maxkey(self, IITreeSet):
         instance = self.createInstance()
         request = mock.Mock()
-        instance.get_position = mock.Mock()
+        instance._get_position = mock.Mock()
         instance._end2uid = mock.Mock()
         instance._end2uid.maxKey = mock.Mock(side_effect=ValueError)
         IITreeSet.return_value = 'iitreeset'
@@ -547,20 +547,20 @@ class TestEventIndex(unittest.TestCase):
     def test__apply_index__with_start_none(self, IITreeSet):
         instance = self.createInstance()
         request = mock.Mock()
-        instance.get_position = mock.Mock(return_value=None)
+        instance._get_position = mock.Mock(return_value=None)
         IITreeSet.return_value = [1, 2, 3]
-        instance.aaa = mock.Mock()
+        instance._finalize_index = mock.Mock()
         instance._end2uid = mock.Mock()
         instance._apply_index(request)
-        self.assertTrue(instance.aaa.called)
+        self.assertTrue(instance._finalize_index.called)
 
     @mock.patch('plone.app.eventindex.IITreeSet')
     def test__apply_index__with_start_not_none_without_minkey(self, IITreeSet):
         instance = self.createInstance()
         request = mock.Mock()
-        instance.get_position = mock.Mock()
+        instance._get_position = mock.Mock()
         IITreeSet.return_value = [1, 2, 3]
-        instance.aaa = mock.Mock()
+        instance._finalize_index = mock.Mock()
         instance._end2uid = mock.Mock()
         instance._end2uid.minKey = mock.Mock(side_effect=ValueError)
         # instance._apply_index(request)
@@ -575,9 +575,9 @@ class TestEventIndex(unittest.TestCase):
     def test__apply_index__with_start_not_none_without_value(self, IITreeSet, union):
         instance = self.createInstance()
         request = mock.Mock()
-        instance.get_position = mock.Mock()
+        instance._get_position = mock.Mock()
         IITreeSet.return_value = [1, 2, 3]
-        instance.aaa = mock.Mock()
+        instance._finalize_index = mock.Mock()
         instance._end2uid = mock.Mock()
         instance._end2uid.values.return_value = [mock.Mock()]
         instance._start2uid = mock.Mock()
@@ -593,9 +593,9 @@ class TestEventIndex(unittest.TestCase):
     def test__apply_index__with_minkey_is_not_start(self, IITreeSet, union, intersection):
         instance = self.createInstance()
         request = mock.Mock()
-        instance.get_position = mock.Mock()
+        instance._get_position = mock.Mock()
         IITreeSet.return_value = [1, 2, 3]
-        instance.aaa = mock.Mock()
+        instance._finalize_index = mock.Mock()
         instance._end2uid = mock.Mock()
         minKey = instance._end2uid.minKey()
         maxKey = instance._end2uid.maxKey()
@@ -611,7 +611,7 @@ class TestEventIndex(unittest.TestCase):
         )
         self.assertEqual(union.call_count, 2)
         self.assertTrue(intersection.called)
-        self.assertTrue(instance.aaa.called)
+        self.assertTrue(instance._finalize_index.called)
 
     @mock.patch('plone.app.eventindex.intersection')
     @mock.patch('plone.app.eventindex.union')
@@ -620,11 +620,11 @@ class TestEventIndex(unittest.TestCase):
         instance = self.createInstance()
         request = mock.Mock()
         position = mock.Mock()
-        instance.get_position = position
-        instance.get_position = mock.Mock()
-        instance.get_position().utctimetuple.return_value = position
+        instance._get_position = position
+        instance._get_position = mock.Mock()
+        instance._get_position().utctimetuple.return_value = position
         IITreeSet.return_value = [1, 2, 3]
-        instance.aaa = mock.Mock()
+        instance._finalize_index = mock.Mock()
         instance._end2uid = mock.Mock()
         instance._end2uid.minKey.return_value = position
         minKey = instance._end2uid.minKey()
@@ -641,7 +641,7 @@ class TestEventIndex(unittest.TestCase):
         )
         self.assertEqual(union.call_count, 2)
         self.assertTrue(intersection.called)
-        self.assertTrue(instance.aaa.called)
+        self.assertTrue(instance._finalize_index.called)
 
     @mock.patch('plone.app.eventindex.intersection')
     @mock.patch('plone.app.eventindex.union')
@@ -650,11 +650,11 @@ class TestEventIndex(unittest.TestCase):
         instance = self.createInstance()
         request = mock.Mock()
         position = mock.Mock()
-        instance.get_position = position
-        instance.get_position = mock.Mock()
-        instance.get_position().utctimetuple.return_value = position
+        instance._get_position = position
+        instance._get_position = mock.Mock()
+        instance._get_position().utctimetuple.return_value = position
         IITreeSet.return_value = [1, 2, 3]
-        instance.aaa = mock.Mock()
+        instance._finalize_index = mock.Mock()
         instance._end2uid = mock.MagicMock()
         instance._end2uid.__getitem__.return_value = [mock.Mock()]
         instance._end2uid.minKey.return_value = position
@@ -671,7 +671,7 @@ class TestEventIndex(unittest.TestCase):
         )
         self.assertEqual(union.call_count, 3)
         self.assertTrue(intersection.called)
-        self.assertTrue(instance.aaa.called)
+        self.assertTrue(instance._finalize_index.called)
 
     def test_numObjects(self):
         instance = self.createInstance()

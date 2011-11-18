@@ -176,7 +176,7 @@ class EventIndex(SimpleItem):
         self._uid2duration.pop(documentId, 'No ID found')
         self._uid2recurrence.pop(documentId, 'No ID found')
 
-    def get_position(self, request, position):
+    def _get_position(self, request, position):
         """Get position from certain ID.
 
         :param request: Request
@@ -190,7 +190,7 @@ class EventIndex(SimpleItem):
             pos = pos.utcdatetime()
         return pos
 
-    def aaa(self, result, start, end, used_fields):
+    def _finalize_index(self, result, start, end, used_fields):
         filtered_result = IITreeSet()
         # used_recurrence = False
 
@@ -265,8 +265,8 @@ class EventIndex(SimpleItem):
         if not request.has_key(self._id):  # 'in' doesn't work with this object
             return IITreeSet(self._uid2end.keys()), ()
 
-        start = self.get_position(request, 'start')
-        end = self.get_position(request, 'end')
+        start = self._get_position(request, 'start')
+        end = self._get_position(request, 'end')
 
         used_fields = ()
 
@@ -327,7 +327,7 @@ class EventIndex(SimpleItem):
             # No end specified, take all:
             result = start_uids
 
-        return self.aaa(result, start, end, used_fields)
+        return self._finalize_index(result, start, end, used_fields)
 
     def numObjects(self):
         """Return the number of indexed objects."""
