@@ -149,31 +149,30 @@ class EventIndex(SimpleItem):
 
         return True
 
-    def remove_id(self, documentId, point):
+    def _remove_id(self, documentId, from_uid, to_uid):
         """Remove documentId based on point.
         Helper method for unindex_object method.
 
         :param documentId: Integer
         :type documentId: int
 
-        :param point: start or end
-        :type point: str
+        :param from_uid:
+        :type to_uid:
+
+        :param to_uid:
+        :type to_uid:
         """
-        attr = '_uid2{0}'.format(point)
-        position = getattr(self, attr).pop(documentId, 'No ID found')
-        attr = '_{0}2uid'.format(point)
-        pos = getattr(self, attr)
-        row =pos.get(position)
-        if row:
-            if documentId in row:
-                row.remove(documentId)
-            if len(row) == 0:
-                pos.pop(position, 'Not Found')
+        fuid = from_uid.pop(documentId, 'No ID found')
+        row = to_uid[fuid]
+        if documentId in row:
+            row.remove(documentId)
+        if len(row) == 0:
+            to_uid.pop(fuid, 'Not Found')
 
     def unindex_object(self, documentId):
         """Remove the documentId from the index."""
-        self.remove_id(documentId, 'start')
-        self.remove_id(documentId, 'end')
+        self._remove_id(documentId, self._uid2start, self._start2uid)
+        self._remove_id(documentId, self._uid2end, self._end2uid)
         self._uid2duration.pop(documentId, 'No ID found')
         self._uid2recurrence.pop(documentId, 'No ID found')
 

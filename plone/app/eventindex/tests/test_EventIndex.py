@@ -258,34 +258,80 @@ class TestEventIndex(unittest.TestCase):
         self.assertEqual(len(instance._uid2duration), 1)
         self.assertEqual(instance._uid2duration[documentId], 3)
 
-    def test_remove_id(self):
+    def test__remove_id_from_uid_not_in_to_uid(self):
         instance = self.createInstance()
-        documentId = 2
-        point = 'start'
-        instance._uid2start = mock.Mock()
-        instance.remove_id(documentId, point)
-        self.assertTrue(instance._uid2start.pop.called)
-        instance._uid2start.pop.return_value = 3
-        instance._start2uid = mock.Mock()
-        instance._start2uid.get.return_value = [1]
-        instance.remove_id(documentId, point)
-        self.assertTrue(instance._start2uid.get.called)
-        self.assertEqual(instance._start2uid.get(), [1])
-        instance._start2uid.get.return_value = [1, 2, 3, 4]
-        instance.remove_id(documentId, point)
-        self.assertEqual(instance._start2uid.get(), [1, 3, 4])
-        documentId = 3
-        instance.remove_id(documentId, point)
-        self.assertEqual(instance._start2uid.get(), [1, 4])
+        documentId = mock.Mock()
+        from_uid = mock.Mock()
+        to_uid = {}
+        self.assertRaises(
+            KeyError,
+            lambda: instance._remove_id(
+                documentId,
+                from_uid,
+                to_uid
+            )
+        )
+
+    def test__remove_id_documentId_not_in_row(self):
+        instance = self.createInstance()
+        documentId = mock.Mock()
+        from_uid = mock.Mock()
+        fuid = mock.Mock()
+        from_uid.pop.return_value = fuid
+        val = mock.MagicMock()
+        to_uid = {fuid: val}
+        instance._remove_id(documentId, from_uid, to_uid)
+        self.assertTrue(from_uid.pop.called)
+        self.assertFalse(val.remove.called)
+        self.assertFalse(to_uid)
+
+    def test__remove_id_documentId_in_row(self):
+        instance = self.createInstance()
+        documentId = mock.Mock()
+        from_uid = mock.Mock()
+        fuid = mock.Mock()
+        from_uid.pop.return_value = fuid
+        val = mock.MagicMock()
+        val.__contains__.return_value = True
+        to_uid = {fuid: val}
+        instance._remove_id(documentId, from_uid, to_uid)
+        self.assertTrue(from_uid.pop.called)
+        self.assertTrue(val.remove.called)
+        self.assertFalse(to_uid)
+
+    def test__remove_id_len_row_0(self):
+        instance = self.createInstance()
+        documentId = mock.Mock()
+        from_uid = mock.Mock()
+        fuid = mock.Mock()
+        from_uid.pop.return_value = fuid
+        val = mock.MagicMock()
+        to_uid = {fuid: val}
+        instance._remove_id(documentId, from_uid, to_uid)
+        self.assertTrue(from_uid.pop.called)
+        self.assertFalse(to_uid)
+
+    def test__remove_id_len_row_not_0(self):
+        instance = self.createInstance()
+        documentId = mock.Mock()
+        from_uid = mock.Mock()
+        fuid = mock.Mock()
+        from_uid.pop.return_value = fuid
+        val = mock.MagicMock()
+        val.__len__.return_value = 3
+        to_uid = {fuid: val}
+        instance._remove_id(documentId, from_uid, to_uid)
+        self.assertTrue(from_uid.pop.called)
+        self.assertTrue(to_uid)
 
     def test_unindex_object(self):
         instance = self.createInstance()
         documentId = mock.Mock()
-        instance.remove_id = mock.Mock()
+        instance._remove_id = mock.Mock()
         instance._uid2duration = mock.Mock()
         instance._uid2recurrence = mock.Mock()
         instance.unindex_object(documentId)
-        self.assertEqual(instance.remove_id.call_count, 2)
+        self.assertEqual(instance._remove_id.call_count, 2)
         self.assertTrue(instance._uid2duration.pop.called)
         self.assertTrue(instance._uid2recurrence.pop.called)
 
