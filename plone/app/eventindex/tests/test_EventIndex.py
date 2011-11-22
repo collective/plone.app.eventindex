@@ -263,9 +263,8 @@ class TestEventIndex(unittest.TestCase):
         documentId = mock.Mock()
         from_uid = mock.Mock()
         to_uid = {}
-        self.assertRaises(
-            KeyError,
-            lambda: instance._remove_id(
+        self.assertFalse(
+            instance._remove_id(
                 documentId,
                 from_uid,
                 to_uid

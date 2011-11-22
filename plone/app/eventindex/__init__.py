@@ -163,11 +163,12 @@ class EventIndex(SimpleItem):
         :type to_uid:
         """
         fuid = from_uid.pop(documentId, 'No ID found')
-        row = to_uid[fuid]
-        if documentId in row:
-            row.remove(documentId)
-        if len(row) == 0:
-            to_uid.pop(fuid, 'Not Found')
+        row = to_uid.get(fuid)
+        if row is not None:
+            if documentId in row:
+                row.remove(documentId)
+            if len(row) == 0:
+                to_uid.pop(fuid, 'Not Found')
 
     def unindex_object(self, documentId):
         """Remove the documentId from the index."""
