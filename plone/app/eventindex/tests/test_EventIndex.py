@@ -118,12 +118,39 @@ class TestEventIndex(unittest.TestCase):
         instance = self.createInstance()
         self.assertEqual(instance.getId(), 'id')
 
-    def test_getEntryForObject(self):
-        ## Should we implement something rather than raise NotImplementedError?
+    def test_getEntryForObject__default(self):
         instance = self.createInstance()
-        self.assertRaises(
-            NotImplementedError,
-            lambda: instance.getEntryForObject(mock.Mock())
+        instance._uid2start = {}
+        documentId = mock.Mock()
+        self.assertEqual(
+            instance.getEntryForObject(documentId),
+            ''
+        )
+
+    def test_getEntryForObject__default_is_DEFAULT(self):
+        instance = self.createInstance()
+        instance._uid2start = {}
+        documentId = mock.Mock()
+        self.assertEqual(
+            instance.getEntryForObject(documentId, default='DEFAULT'),
+            'DEFAULT'
+        )
+
+    def test_getEntryForObject__with_documentId(self):
+        instance = self.createInstance()
+        documentId = mock.Mock()
+        instance._uid2start = {documentId: 'START'}
+        instance._uid2end = {documentId: 'END'}
+        instance._uid2recurrence = {documentId: 'RECURRENCE'}
+        instance._uid2duration = {documentId: 'DURATION'}
+        self.assertEqual(
+            instance.getEntryForObject(documentId),
+            {
+                'start': 'START',
+                'end': 'END',
+                'recurrence': 'RECURRENCE',
+                'duration': 'DURATION',
+            }
         )
 
     def test_getIndexSourceNames(self):

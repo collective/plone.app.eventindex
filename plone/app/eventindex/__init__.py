@@ -48,9 +48,18 @@ class EventIndex(SimpleItem):
         """Return Id of index."""
         return self._id
 
-    def getEntryForObject(self, documentId, default=None):
+    def getEntryForObject(self, documentId, default=''):
         """Get all information contained for 'documentId'."""
-        raise NotImplementedError()
+        uid2start = self._uid2start.get(documentId)
+        if uid2start:
+            return {
+                'start': uid2start,
+                'end': self._uid2end[documentId],
+                'recurrence': self._uid2recurrence[documentId],
+                'duration': self._uid2duration[documentId]
+            }
+        else:
+            return default
 
     def getIndexSourceNames(self):
         """Get a sequence of attribute names that are indexed by the index.
