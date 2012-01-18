@@ -4,7 +4,7 @@ import unittest2 as unittest
 
 class TestUtcify(unittest.TestCase):
 
-    def test_utificy(self):
+    def test_utcify(self):
         from plone.app.eventindex.tests.test_original import utcify
         from DateTime import DateTime
         dt = mock.Mock(spec=DateTime)

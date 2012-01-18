@@ -126,55 +126,6 @@ class EventIndexTests(unittest.TestCase):
         self.assertTrue(1 in res[0])
         self.assertTrue(2 in res[0])
 
-    def test_unindex(self):
-        test_objects = {
-            1: TestOb('a', datetime(2011, 4, 5, 12, 0), datetime(2011, 4, 5, 13, 0), None),
-            2: TestOb('b', datetime(2011, 4, 6, 12, 0), datetime(2011, 4, 6, 13, 0), None),
-            3: TestOb('c', datetime(2011, 4, 7, 12, 0), datetime(2011, 4, 7, 13, 0), None),
-            4: TestOb('d', datetime(2011, 4, 7, 14, 0), datetime(2011, 4, 7, 15, 0), None),
-            5: TestOb('e', datetime(2011, 4, 7, 12, 0), datetime(2011, 4, 7, 16, 0), None),
-        }
-
-        index = EventIndex('event', extra={'start_attr': '', 'end_attr': '', 'recurrence_attr': ''})
-        for uid, ob in test_objects.items():
-            index.index_object(uid, ob)
-
-        for uid, ob in test_objects.items():
-            index.unindex_object(uid)
-
-        # Make sure all indexes are clean (yes, this tests internal state)
-        self.assertEqual(len(index._end2uid), 0)
-        self.assertEqual(len(index._start2uid), 0)
-        self.assertEqual(len(index._uid2duration), 0)
-        self.assertEqual(len(index._uid2end), 0)
-        self.assertEqual(len(index._uid2recurrence), 0)
-        self.assertEqual(len(index._uid2start), 0)
-
-    def test_basic_recurrence(self):
-        test_objects = {
-            1: TestOb('a', datetime(2011, 4, 5, 12, 0), datetime(2011, 4, 5, 13, 0), 'RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5'),
-        }
-
-        index = EventIndex('event', extra={'start_attr': '', 'end_attr': '', 'recurrence_attr': ''})
-        for uid, ob in test_objects.items():
-            index.index_object(uid, ob)
-
-        # Return all
-        res = index._apply_index({})
-        self.assertTrue(1 in res[0])
-
-        # Return one
-        res = index._apply_index({'event': {'start': datetime(2011, 4, 5, 12, 0),
-                                            'end': datetime(2011, 4, 5, 13, 0)}})
-        self.assertEqual(len(res[0]), 1)
-        self.assertTrue(1 in res[0])
-
-        # Same one, twenty days later
-        res = index._apply_index({'event': {'start': datetime(2011, 4, 25, 12, 0),
-                                            'end': datetime(2011, 4, 25, 13, 0)}})
-        self.assertEqual(len(res[0]), 1)
-        self.assertTrue(1 in res[0])
-
     def test_mixed_data(self):
         # DateTime and datetime, different timezones, no timezones.
         eastern = timezone('US/Eastern')
@@ -238,6 +189,55 @@ class EventIndexTests(unittest.TestCase):
         self.assertEqual(len(res[0]), 2)
         self.assertTrue(1 in res[0])
         self.assertTrue(2 in res[0])
+        
+    def test_unindex(self):
+        test_objects = {
+            1: TestOb('a', datetime(2011, 4, 5, 12, 0), datetime(2011, 4, 5, 13, 0), None),
+            2: TestOb('b', datetime(2011, 4, 6, 12, 0), datetime(2011, 4, 6, 13, 0), None),
+            3: TestOb('c', datetime(2011, 4, 7, 12, 0), datetime(2011, 4, 7, 13, 0), None),
+            4: TestOb('d', datetime(2011, 4, 7, 14, 0), datetime(2011, 4, 7, 15, 0), None),
+            5: TestOb('e', datetime(2011, 4, 7, 12, 0), datetime(2011, 4, 7, 16, 0), None),
+        }
+
+        index = EventIndex('event', extra={'start_attr': '', 'end_attr': '', 'recurrence_attr': ''})
+        for uid, ob in test_objects.items():
+            index.index_object(uid, ob)
+
+        for uid, ob in test_objects.items():
+            index.unindex_object(uid)
+
+        # Make sure all indexes are clean (yes, this tests internal state)
+        self.assertEqual(len(index._end2uid), 0)
+        self.assertEqual(len(index._start2uid), 0)
+        self.assertEqual(len(index._uid2duration), 0)
+        self.assertEqual(len(index._uid2end), 0)
+        self.assertEqual(len(index._uid2recurrence), 0)
+        self.assertEqual(len(index._uid2start), 0)
+
+    def test_basic_recurrence(self):
+        test_objects = {
+            1: TestOb('a', datetime(2011, 4, 5, 12, 0), datetime(2011, 4, 5, 13, 0), 'RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5'),
+        }
+
+        index = EventIndex('event', extra={'start_attr': '', 'end_attr': '', 'recurrence_attr': ''})
+        for uid, ob in test_objects.items():
+            index.index_object(uid, ob)
+
+        # Return all
+        res = index._apply_index({})
+        self.assertTrue(1 in res[0])
+
+        # Return one
+        res = index._apply_index({'event': {'start': datetime(2011, 4, 5, 12, 0),
+                                            'end': datetime(2011, 4, 5, 13, 0)}})
+        self.assertEqual(len(res[0]), 1)
+        self.assertTrue(1 in res[0])
+
+        # Same one, twenty days later
+        res = index._apply_index({'event': {'start': datetime(2011, 4, 25, 12, 0),
+                                            'end': datetime(2011, 4, 25, 13, 0)}})
+        self.assertEqual(len(res[0]), 1)
+        self.assertTrue(1 in res[0])
 
     def test_recurrence_with_timezone(self):
         helsinki = timezone('Europe/Helsinki')
