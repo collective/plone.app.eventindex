@@ -140,14 +140,6 @@ class EventIndexTests(unittest.TestCase):
             5: TestOb('e', DateTime('2011/4/7 5:00 PST'), DateTime('2011/4/7 9:00 PST'), None),
         }
 
-        # test_objects2 = {
-        #     1: TestOb('a', DateTime('2011/4/5 12:00 UTC'), DateTime('2011/4/5 13:00 UTC'), None),
-        #     2: TestOb('b', DateTime('2011/4/6 12:00 UTC'), DateTime('2011/4/6 13:00 UTC'), None),
-        #     3: TestOb('c', DateTime('2011/4/7 12:00 UTC'), DateTime('2011/4/7 13:00 UTC'), None),
-        #     4: TestOb('d', DateTime('2011/4/7 14:00 UTC'), DateTime('2011/4/7 15:00 UTC'), None),
-        #     5: TestOb('e', DateTime('2011/4/7 12:00 UTC'), DateTime('2011/4/7 16:00 UTC'), None),
-        # }
-
         index = EventIndex('event')
         for uid, ob in test_objects.items():
             index.index_object(uid, ob)
@@ -257,3 +249,55 @@ class EventIndexTests(unittest.TestCase):
         })
         self.assertEqual(len(res[0]), 1)
         self.assertTrue(1 in res[0])
+
+    def test_infinite_recurrence(self):
+        helsinki = timezone('Europe/Helsinki')
+
+        # Index an event that goes on forever. All events being infinitely
+        # recurring is a special case, so we need to test for this.
+        index = EventIndex('event')
+        index.index_object(1, TestOb(
+            name='a',
+            start=helsinki.localize(datetime(2011, 10, 3, 15, 40)),
+            end=helsinki.localize(datetime(2011, 10, 3, 18, 34)),
+            recurrence='RRULE:FREQ=DAILY;INTERVAL=100'))
+
+        # And now query for it with no end. 
+        # If the index does not handle this case specially, we'd
+        # generate recurrences until we ran out fo memory.
+        res = index._apply_index({
+            'event': {
+                'start': helsinki.localize(datetime(2011, 10, 3)),
+            }
+        })
+        self.assertEqual(len(res[0]), 1)
+        self.assertTrue(1 in res[0])
+        
+        # And we also need to test for having events that do end together
+        # with infinitely recurring events as well.
+        index.index_object(2, TestOb(
+            name='a',
+            start=helsinki.localize(datetime(2011, 10, 3, 15, 40)),
+            end=helsinki.localize(datetime(2011, 10, 3, 18, 34)),
+            recurrence='RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5'))
+
+        res = index._apply_index({
+            'event': {
+                'start': helsinki.localize(datetime(2011, 10, 3)),
+            }
+        })
+        self.assertEqual(len(res[0]), 2)
+        self.assertTrue(1 in res[0])
+        self.assertTrue(2 in res[0])
+        
+        # Now search after the ending event ends, and we'll only get the 
+        # neverending recurrence back.
+        
+        res = index._apply_index({
+            'event': {
+                'start': helsinki.localize(datetime(2012, 10, 3)),
+            }
+        })
+        self.assertEqual(len(res[0]), 1)
+        self.assertTrue(1 in res[0])
+        

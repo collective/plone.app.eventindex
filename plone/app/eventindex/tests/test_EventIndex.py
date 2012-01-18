@@ -254,10 +254,10 @@ class TestEventIndex(unittest.TestCase):
         self.assertEqual(instance._uid2end[documentId], 'last')
         self.assertEqual(len(instance._uid2duration), 1)
         self.assertEqual(instance._uid2duration[documentId], 3)
-        rule.count = None
+        rule._count = None
         self.assertTrue(instance.index_object(documentId, obj))
         self.assertEqual(instance._uid2end[documentId], 'last')
-        rule.until = None
+        rule._until = None
         self.assertTrue(instance.index_object(documentId, obj))
         self.assertFalse(instance._uid2end[documentId])
 
@@ -274,7 +274,7 @@ class TestEventIndex(unittest.TestCase):
         from dateutil.rrule import rrulebase
         rule = mock.Mock(spec=rrulebase)
         obj.recurrence.return_value = rule
-        rule.count = rule.until = None
+        rule._count = rule._until = None
         self.assertTrue(instance.index_object(documentId, obj))
         self.assertEqual(len(instance._uid2start), 1)
         self.assertEqual(instance._uid2start[documentId], 'Start Value')
@@ -589,6 +589,7 @@ class TestEventIndex(unittest.TestCase):
         instance._finalize_index = mock.Mock()
         instance._end2uid = mock.Mock()
         instance._end2uid.minKey = mock.Mock(side_effect=ValueError)
+        instance._end2uid.__getitem__ = mock.Mock(return_value=[])
         # instance._apply_index(request)
         IITreeSet.return_value = 'iitreeset'
         self.assertEqual(
@@ -606,11 +607,12 @@ class TestEventIndex(unittest.TestCase):
         instance._finalize_index = mock.Mock()
         instance._end2uid = mock.Mock()
         instance._end2uid.values.return_value = [mock.Mock()]
+        instance._end2uid.__getitem__ = mock.Mock(return_value=[])
         instance._start2uid = mock.Mock()
         instance._start2uid.values = mock.Mock(side_effect=ValueError)
         self.assertEqual(
             instance._apply_index(request),
-            ([1, 2, 3], ('start', 'end'))
+            ([1, 2, 3], ('start',))
         )
 
     @mock.patch('plone.app.eventindex.intersection')

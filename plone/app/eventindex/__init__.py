@@ -128,7 +128,7 @@ class EventIndex(SimpleItem):
 
         # The end value should be the end of the recurrence, if any:
         if rule is not None:
-            if rule.count is None and rule.until is None:
+            if rule._count is None and rule._until is None:
                 # This event is open ended
                 end_value = None
             else:
@@ -280,17 +280,22 @@ class EventIndex(SimpleItem):
 
         used_fields = ()
 
-        # Find those who do not end before the start.
+        # We don't want the events who end before the start. In other
+        # words we want to find those evens whose end >= the start query,
+        # or None as None means they have infinite recurrence.
         try:
             maxkey = self._end2uid.maxKey()
         except ValueError:  # No events at all
             return IITreeSet(), used_fields
-        if start is None:
-            # Begin is None, so we need to search right from the start.
+
+        if start is None or maxkey is None:
+            # start is None, so we need to search right from the start; or
+            # (amazingly) all events have infinite recurrence.
             # This means we must return *all* uids.
             start_uids = IITreeSet(self._uid2end.keys())
         else:
             used_fields += (self.start_attr,)
+            start_uids = IITreeSet()
             start = start.utctimetuple()
             try:
                 minkey = self._end2uid.minKey(start)
@@ -301,37 +306,41 @@ class EventIndex(SimpleItem):
                 else:
                     excludemin = False
 
-                start_uids = IITreeSet()
                 for row in self._end2uid.values(minkey, maxkey, excludemin=excludemin):
-
                     start_uids = union(start_uids, row)
+                    
             except ValueError:
-                # No events
-                return IITreeSet(), used_fields
+                # No ending events
+                pass
+            
+                
+            # Include open ended events, if any
+            if self._end2uid.has_key(None):
+                for row in self._end2uid[None]:
+                    start_uids = union(start_uids, row)
+            
 
         # XXX At this point an intersection with the resultset might be
         # beneficial. It would stop us from calculating the recurrence
         # of ids that won't be returned. It could be done after the
         # intersection with end_uids below as well, performance tests will tell.
 
-        # Find those who do not start after the end.
+        # We also do not want the events whose start come after the end query.
+        # In other words, we find all events where start <= end.
         if end is not None:
-            used_fields += (self.end_attr,)
-            minkey = self._start2uid.minKey()
             end = end.utctimetuple()
             try:
+                minkey = self._start2uid.minKey()
                 end_uids = IITreeSet()
                 for row in self._start2uid.values(minkey, end):
                     end_uids = union(end_uids, row)
-
-                # Include open ended events:
-                if start is not None and self._end2uid.has_key(None):
-                    for row in self._end2uid[None]:
-                        end_uids = union(end_uids, row)
+                    
+                used_fields += (self.end_attr,)
 
             except ValueError:
                 # No events
                 return IITreeSet(), used_fields
+
             result = intersection(start_uids, end_uids)
         else:
             # No end specified, take all:
