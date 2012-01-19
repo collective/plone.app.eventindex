@@ -300,4 +300,57 @@ class EventIndexTests(unittest.TestCase):
         })
         self.assertEqual(len(res[0]), 1)
         self.assertTrue(1 in res[0])
+
+    def test_recurrence_exdate(self):
+        # Turns out that if you have EXDATE and RDATE, rulestr() will return a
+        # ruleset, which has a different interface.
+        helsinki = timezone('Europe/Helsinki')
+
+        # Index an event that goes on forever. All events being infinitely
+        # recurring is a special case, so we need to test for this.
+        index = EventIndex('event')
+        index.index_object(1, TestOb(
+            name='a',
+            start=helsinki.localize(datetime(2011, 10, 3, 15, 40)),
+            end=helsinki.localize(datetime(2011, 10, 3, 18, 34)),
+            recurrence='RRULE:FREQ=YEARLY\r\nEXDATE:20131003T154000Z,20151003T154000Z'))
+
+        # And now query for it with no end. 
+        # If the index does not handle this case specially, we'd
+        # generate recurrences until we ran out fo memory.
+        res = index._apply_index({
+            'event': {
+                'start': helsinki.localize(datetime(2011, 10, 3)),
+            }
+        })
+        self.assertEqual(len(res[0]), 1)
+        self.assertTrue(1 in res[0])
         
+        # And we also need to test for having events that do end together
+        # with infinitely recurring events as well.
+        index.index_object(2, TestOb(
+            name='a',
+            start=helsinki.localize(datetime(2011, 10, 3, 15, 40)),
+            end=helsinki.localize(datetime(2011, 10, 3, 18, 34)),
+            recurrence='RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5'))
+
+        res = index._apply_index({
+            'event': {
+                'start': helsinki.localize(datetime(2011, 10, 3)),
+            }
+        })
+        self.assertEqual(len(res[0]), 2)
+        self.assertTrue(1 in res[0])
+        self.assertTrue(2 in res[0])
+        
+        # Now search after the ending event ends, and we'll only get the 
+        # neverending recurrence back.
+        
+        res = index._apply_index({
+            'event': {
+                'start': helsinki.localize(datetime(2012, 10, 3)),
+            }
+        })
+        self.assertEqual(len(res[0]), 1)
+        self.assertTrue(1 in res[0])
+                

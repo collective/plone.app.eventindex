@@ -244,7 +244,11 @@ class TestEventIndex(unittest.TestCase):
         rule = mock.Mock()
         rrule.rrulestr.return_value = rule
         rrule.rrulestr()._iter.return_value = [dur]
+        # Antimock this mock
+        from dateutil.rrule import rruleset
+        rrule.rruleset = rruleset
         duration.utctimetuple.return_value = 'last'
+        
         self.assertTrue(instance.index_object(documentId, obj))
         self.assertEqual(len(instance._uid2start), 1)
         self.assertEqual(instance._uid2start[documentId], 'Start Value')
@@ -432,9 +436,9 @@ class TestEventIndex(unittest.TestCase):
         used_fields = (used_field,)
         instance._uid2recurrence = mock.Mock()
         instance._uid2recurrence.get.return_value = mock.Mock()
-        occurence = mock.Mock()
-        occurence.utctimetuple.return_value = (2006, 6, 14, 13, 0, 0)
-        instance._uid2recurrence.get()._iter.return_value = [occurence]
+        occurrence = mock.Mock()
+        occurrence.utctimetuple.return_value = (2006, 6, 14, 13, 0, 0)
+        instance._uid2recurrence.get()._iter.return_value = [occurrence]
         self.assertEqual(
             instance._finalize_index(result, start, end, used_fields),
             (
@@ -488,11 +492,11 @@ class TestEventIndex(unittest.TestCase):
         instance._uid2start = dict(
             [(key, dt) for key in result]
         )
-        occurence = mock.Mock()
-        occurence.utctimetuple.return_value = (2006, 6, 14, 13, 0, 0)
+        occurrence = mock.Mock()
+        occurrence.utctimetuple.return_value = (2006, 6, 14, 13, 0, 0)
         instance._uid2recurrence = mock.Mock()
         instance._uid2recurrence.get.return_value = mock.Mock()
-        instance._uid2recurrence.get()._iter.return_value = [occurence]
+        instance._uid2recurrence.get()._iter.return_value = [occurrence]
         self.assertEqual(
             instance._finalize_index(result, start, end, used_fields),
             (
@@ -525,11 +529,11 @@ class TestEventIndex(unittest.TestCase):
         instance._uid2duration = dict(
             [(key, dur) for key in result]
         )
-        occurence = mock.Mock()
-        occurence.utctimetuple.return_value = (2006, 6, 14, 13, 0, 0)
+        occurrence = mock.Mock()
+        occurrence.utctimetuple.return_value = (2006, 6, 14, 13, 0, 0)
         instance._uid2recurrence = mock.Mock()
         instance._uid2recurrence.get.return_value = mock.Mock()
-        instance._uid2recurrence.get()._iter.return_value = [occurence]
+        instance._uid2recurrence.get()._iter.return_value = [occurrence]
         self.assertEqual(
             instance._finalize_index(result, start, end, used_fields),
             (

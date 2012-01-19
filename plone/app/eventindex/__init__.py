@@ -12,6 +12,17 @@ from datetime import datetime
 from dateutil import rrule
 from zope.interface import implements
 
+def is_open_ended(rule):
+    if isinstance(rule, rrule.rruleset):
+        rules = rule._rrule
+    else:
+        rules = [rule]
+        
+    for r in rules:
+        if r._count is None and r._until is None:
+            return True
+        
+    return False
 
 class EventIndex(SimpleItem):
 
@@ -128,8 +139,8 @@ class EventIndex(SimpleItem):
 
         # The end value should be the end of the recurrence, if any:
         if rule is not None:
-            if rule._count is None and rule._until is None:
-                # This event is open ended
+            if is_open_ended(rule):
+                # This recurrence is open ended
                 end_value = None
             else:
                 duration = end - start
