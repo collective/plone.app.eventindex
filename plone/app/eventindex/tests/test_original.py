@@ -250,7 +250,7 @@ class EventIndexTests(unittest.TestCase):
         self.assertEqual(len(res[0]), 1)
         self.assertTrue(1 in res[0])
 
-    def test_both_rdate_and_exdate(self):
+    def test_mixed_timezones(self):
         helsinki = timezone('Europe/Helsinki')
 
         index = EventIndex('event')
@@ -272,6 +272,25 @@ class EventIndexTests(unittest.TestCase):
         self.assertEqual(len(res[0]), 1)
         self.assertTrue(1 in res[0])
 
+        index = EventIndex('event')
+        index.index_object(2, TestOb(
+            name='b',
+            start=datetime(2011, 10, 3, 15, 40),
+            end=datetime(2011, 10, 3, 18, 34),
+            recurrence='\r\n'.join([
+                'RRULE:FREQ=WEEKLY;BYDAY=MO;COUNT=10',
+                'EXDATE:20120220T000000Z',
+                'RDATE:20120120T000000Z'])))
+
+        res = index._apply_index({
+            'event': {
+                'start': helsinki.localize(datetime(2011, 10, 3)),
+                'end': helsinki.localize(datetime(2011, 10, 6)),
+            }
+        })
+        self.assertEqual(len(res[0]), 1)
+        self.assertTrue(2 in res[0])
+
     def test_infinite_recurrence(self):
         helsinki = timezone('Europe/Helsinki')
 
@@ -286,7 +305,7 @@ class EventIndexTests(unittest.TestCase):
 
         # And now query for it with no end.
         # If the index does not handle this case specially, we'd
-        # generate recurrences until we ran out fo memory.
+        # generate recurrences until we ran out of memory.
         res = index._apply_index({
             'event': {
                 'start': helsinki.localize(datetime(2011, 10, 3)),

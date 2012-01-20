@@ -24,6 +24,32 @@ def is_open_ended(rule):
         
     return False
 
+def localize_datetime(dt, tz):
+    if not isinstance(dt, datetime):
+        return dt
+
+    if tz is None and dt.tzinfo is not None:
+        return dt.replace(tzinfo=None)
+    elif tz is not None and dt.tzinfo is None:
+        return tz.localize(dt)
+    else:
+        return dt
+
+def sync_timezone(rule, tz):
+    if isinstance(rule, rrule.rruleset):
+        if getattr(rule, '_exdate', None):
+            rule._exdate = [localize_datetime(x, tz) for x in rule._exdate]
+        if getattr(rule, '_rdate', None):
+            rule._rdate = [localize_datetime(x, tz) for x in rule._rdate]
+        for x in rule._rrule:
+            sync_timezone(x, tz)
+    else:
+        if getattr(rule, '_until', None):
+            rule._until = localize_datetime(rule._until, tz)
+        if getattr(rule, '_dtstart', None):
+            rule._dtstart = localize_datetime(rule._dtstart, tz)
+        
+
 class EventIndex(SimpleItem):
 
     implements(IPluggableIndex)
@@ -130,6 +156,11 @@ class EventIndex(SimpleItem):
             #XXX Log error
             rule = None
 
+        # Strip out times from the recurrence:
+        if rule is not None:
+            #import pdb;pdb.set_trace()
+            sync_timezone(rule, start.tzinfo)
+            
         ### 2. Make them into what should be indexed.
         # XXX Naive events are not comparable to timezoned events, so we convert
         # everything to utctimetuple(). This means naive events are assumed to
