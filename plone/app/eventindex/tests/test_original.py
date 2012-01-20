@@ -181,7 +181,7 @@ class EventIndexTests(unittest.TestCase):
         self.assertEqual(len(res[0]), 2)
         self.assertTrue(1 in res[0])
         self.assertTrue(2 in res[0])
-        
+
     def test_unindex(self):
         test_objects = {
             1: TestOb('a', datetime(2011, 4, 5, 12, 0), datetime(2011, 4, 5, 13, 0), None),
@@ -250,6 +250,28 @@ class EventIndexTests(unittest.TestCase):
         self.assertEqual(len(res[0]), 1)
         self.assertTrue(1 in res[0])
 
+    def test_both_rdate_and_exdate(self):
+        helsinki = timezone('Europe/Helsinki')
+
+        index = EventIndex('event')
+        index.index_object(1, TestOb(
+            name='a',
+            start=helsinki.localize(datetime(2011, 10, 3, 15, 40)),
+            end=helsinki.localize(datetime(2011, 10, 3, 18, 34)),
+            recurrence='\r\n'.join([
+                'RRULE:FREQ=WEEKLY;BYDAY=MO;COUNT=10',
+                'EXDATE:20120220T000000',
+                'RDATE:20120120T000000'])))
+
+        res = index._apply_index({
+            'event': {
+                'start': helsinki.localize(datetime(2011, 10, 3)),
+                'end': helsinki.localize(datetime(2011, 10, 6)),
+            }
+        })
+        self.assertEqual(len(res[0]), 1)
+        self.assertTrue(1 in res[0])
+
     def test_infinite_recurrence(self):
         helsinki = timezone('Europe/Helsinki')
 
@@ -262,7 +284,7 @@ class EventIndexTests(unittest.TestCase):
             end=helsinki.localize(datetime(2011, 10, 3, 18, 34)),
             recurrence='RRULE:FREQ=DAILY;INTERVAL=100'))
 
-        # And now query for it with no end. 
+        # And now query for it with no end.
         # If the index does not handle this case specially, we'd
         # generate recurrences until we ran out fo memory.
         res = index._apply_index({
@@ -272,7 +294,7 @@ class EventIndexTests(unittest.TestCase):
         })
         self.assertEqual(len(res[0]), 1)
         self.assertTrue(1 in res[0])
-        
+
         # And we also need to test for having events that do end together
         # with infinitely recurring events as well.
         index.index_object(2, TestOb(
@@ -289,10 +311,10 @@ class EventIndexTests(unittest.TestCase):
         self.assertEqual(len(res[0]), 2)
         self.assertTrue(1 in res[0])
         self.assertTrue(2 in res[0])
-        
-        # Now search after the ending event ends, and we'll only get the 
+
+        # Now search after the ending event ends, and we'll only get the
         # neverending recurrence back.
-        
+
         res = index._apply_index({
             'event': {
                 'start': helsinki.localize(datetime(2012, 10, 3)),
@@ -315,7 +337,7 @@ class EventIndexTests(unittest.TestCase):
             end=helsinki.localize(datetime(2011, 10, 3, 18, 34)),
             recurrence='RRULE:FREQ=YEARLY\r\nEXDATE:20131003T154000Z,20151003T154000Z'))
 
-        # And now query for it with no end. 
+        # And now query for it with no end.
         # If the index does not handle this case specially, we'd
         # generate recurrences until we ran out fo memory.
         res = index._apply_index({
@@ -325,7 +347,7 @@ class EventIndexTests(unittest.TestCase):
         })
         self.assertEqual(len(res[0]), 1)
         self.assertTrue(1 in res[0])
-        
+
         # And we also need to test for having events that do end together
         # with infinitely recurring events as well.
         index.index_object(2, TestOb(
@@ -342,10 +364,10 @@ class EventIndexTests(unittest.TestCase):
         self.assertEqual(len(res[0]), 2)
         self.assertTrue(1 in res[0])
         self.assertTrue(2 in res[0])
-        
-        # Now search after the ending event ends, and we'll only get the 
+
+        # Now search after the ending event ends, and we'll only get the
         # neverending recurrence back.
-        
+
         res = index._apply_index({
             'event': {
                 'start': helsinki.localize(datetime(2012, 10, 3)),
@@ -353,4 +375,4 @@ class EventIndexTests(unittest.TestCase):
         })
         self.assertEqual(len(res[0]), 1)
         self.assertTrue(1 in res[0])
-                
+
