@@ -272,6 +272,16 @@ class EventIndexTests(unittest.TestCase):
         self.assertEqual(len(res[0]), 1)
         self.assertTrue(1 in res[0])
 
+        # We indexed it with a timezone, but we can still search without a timezone:
+        res = index._apply_index({
+            'event': {
+                'start': datetime(2011, 10, 3),
+                'end': datetime(2011, 10, 6),
+            }
+        })
+        self.assertEqual(len(res[0]), 1)
+        self.assertTrue(1 in res[0])
+
         index = EventIndex('event')
         index.index_object(2, TestOb(
             name='b',
@@ -282,6 +292,8 @@ class EventIndexTests(unittest.TestCase):
                 'EXDATE:20120220T000000Z',
                 'RDATE:20120120T000000Z'])))
 
+        # We now indexed the date without a timezone.
+        # Searching it with a timezone still works:
         res = index._apply_index({
             'event': {
                 'start': helsinki.localize(datetime(2011, 10, 3)),
