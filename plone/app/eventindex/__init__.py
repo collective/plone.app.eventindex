@@ -2,6 +2,7 @@ from App.special_dtml import DTMLFile
 from BTrees.IIBTree import IITreeSet
 from BTrees.IIBTree import intersection
 from BTrees.IIBTree import union
+from BTrees.IIBTree import multiunion
 from BTrees.IOBTree import IOBTree
 from BTrees.Length import Length
 from BTrees.OOBTree import OOBTree
@@ -145,7 +146,7 @@ class EventIndex(SimpleItem):
             end = start
 
         recurrence = self._getattr(self.recurrence_attr, obj)
-        if recurrence is None:
+        if not recurrence:
             rule = None
         elif isinstance(recurrence, basestring):
             # XXX trap and log errors
@@ -158,7 +159,6 @@ class EventIndex(SimpleItem):
 
         # Strip out times from the recurrence:
         if rule is not None:
-            #import pdb;pdb.set_trace()
             sync_timezone(rule, start.tzinfo)
             
         ### 2. Make them into what should be indexed.
@@ -175,7 +175,14 @@ class EventIndex(SimpleItem):
                 end_value = None
             else:
                 duration = end - start
-                last = [x for x in rule._iter()][-1] + duration
+                allrecs = [x for x in rule._iter()]
+                if allrecs:
+                    last = allrecs[-1] + duration
+                else:
+                    # Real data may have invalud recurrence rules,
+                    # which end before the start for example.
+                    # Then we end up here.
+                    last = end
                 end_value = last.utctimetuple()
 
         ### 3. Store everything in the indexes:
@@ -337,7 +344,7 @@ class EventIndex(SimpleItem):
             start_uids = IITreeSet(self._uid2end.keys())
         else:
             used_fields += (self.start_attr,)
-            start_uids = IITreeSet()
+            #start_uids = IITreeSet()
             start = start.utctimetuple()
             try:
                 minkey = self._end2uid.minKey(start)
@@ -348,20 +355,16 @@ class EventIndex(SimpleItem):
                 else:
                     excludemin = False
 
-                for row in self._end2uid.values(minkey, maxkey, excludemin=excludemin):
-                    start_uids = union(start_uids, row)
+                start_uids = multiunion(self._end2uid.values(minkey, maxkey, excludemin=excludemin))
                     
             except ValueError:
                 # No ending events
                 pass
             
-                
             # Include open ended events, if any
             if self._end2uid.has_key(None):
-                for row in self._end2uid[None]:
-                    start_uids = union(start_uids, row)
+                start_uids = union(start_uids, self._end2uid[None])
             
-
         # XXX At this point an intersection with the resultset might be
         # beneficial. It would stop us from calculating the recurrence
         # of ids that won't be returned. It could be done after the
@@ -373,10 +376,7 @@ class EventIndex(SimpleItem):
             end = end.utctimetuple()
             try:
                 minkey = self._start2uid.minKey()
-                end_uids = IITreeSet()
-                for row in self._start2uid.values(minkey, end):
-                    end_uids = union(end_uids, row)
-                    
+                end_uids = multiunion(self._start2uid.values(minkey, end))
                 used_fields += (self.end_attr,)
 
             except ValueError:
