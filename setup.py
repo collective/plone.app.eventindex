@@ -30,7 +30,6 @@ setup(
     install_requires=[
         'Zope2',
         'mock',
-        'plone.event',
         'python-dateutil<2.0',
         'setuptools',
         'unittest2',

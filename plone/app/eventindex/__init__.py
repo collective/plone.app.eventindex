@@ -359,7 +359,7 @@ class EventIndex(SimpleItem):
                     
             except ValueError:
                 # No ending events
-                pass
+                start_uids = IITreeSet()
             
             # Include open ended events, if any
             if self._end2uid.has_key(None):
