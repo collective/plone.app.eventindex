@@ -248,7 +248,7 @@ class TestEventIndex(unittest.TestCase):
         from dateutil.rrule import rruleset
         rrule.rruleset = rruleset
         duration.utctimetuple.return_value = 'last'
-        
+
         self.assertTrue(instance.index_object(documentId, obj))
         self.assertEqual(len(instance._uid2start), 1)
         self.assertEqual(instance._uid2start[documentId], 'Start Value')

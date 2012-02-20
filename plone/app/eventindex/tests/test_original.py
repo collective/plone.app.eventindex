@@ -63,14 +63,14 @@ class EventIndexTests(unittest.TestCase):
         self.assertTrue(5 in res[0])
 
         # Start date but no end date:
-        res = index._apply_index({'event': {'start': datetime(2011, 4, 6, 20, 0),}})
+        res = index._apply_index({'event': {'start': datetime(2011, 4, 6, 20, 0)}})
         self.assertEqual(len(res[0]), 3)
         self.assertTrue(3 in res[0])
         self.assertTrue(4 in res[0])
         self.assertTrue(5 in res[0])
 
         # End date but no start date:
-        res = index._apply_index({'event': {'end': datetime(2011, 4, 6, 20, 0),}})
+        res = index._apply_index({'event': {'end': datetime(2011, 4, 6, 20, 0)}})
         self.assertEqual(len(res[0]), 2)
         self.assertTrue(1 in res[0])
         self.assertTrue(2 in res[0])
@@ -114,14 +114,14 @@ class EventIndexTests(unittest.TestCase):
         self.assertTrue(5 in res[0])
 
         # Start date but no end date:
-        res = index._apply_index({'event': {'start': DateTime('2011/4/6 20:00 UTC'),}})
+        res = index._apply_index({'event': {'start': DateTime('2011/4/6 20:00 UTC')}})
         self.assertEqual(len(res[0]), 3)
         self.assertTrue(3 in res[0])
         self.assertTrue(4 in res[0])
         self.assertTrue(5 in res[0])
 
         # End date but no start date:
-        res = index._apply_index({'event': {'end': DateTime('2011/4/6 20:00 UTC'),}})
+        res = index._apply_index({'event': {'end': DateTime('2011/4/6 20:00 UTC')}})
         self.assertEqual(len(res[0]), 2)
         self.assertTrue(1 in res[0])
         self.assertTrue(2 in res[0])
@@ -170,14 +170,14 @@ class EventIndexTests(unittest.TestCase):
         self.assertTrue(5 in res[0])
 
         # Start date but no end date:
-        res = index._apply_index({'event': {'start': datetime(2011, 4, 6, 20, 0),}})
+        res = index._apply_index({'event': {'start': datetime(2011, 4, 6, 20, 0)}})
         self.assertEqual(len(res[0]), 3)
         self.assertTrue(3 in res[0])
         self.assertTrue(4 in res[0])
         self.assertTrue(5 in res[0])
 
         # End date but no start date:
-        res = index._apply_index({'event': {'end': datetime(2011, 4, 6, 20, 0),}})
+        res = index._apply_index({'event': {'end': datetime(2011, 4, 6, 20, 0)}})
         self.assertEqual(len(res[0]), 2)
         self.assertTrue(1 in res[0])
         self.assertTrue(2 in res[0])
@@ -406,4 +406,3 @@ class EventIndexTests(unittest.TestCase):
         })
         self.assertEqual(len(res[0]), 1)
         self.assertTrue(1 in res[0])
-

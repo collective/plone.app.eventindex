@@ -13,17 +13,19 @@ from datetime import datetime
 from dateutil import rrule
 from zope.interface import implements
 
+
 def is_open_ended(rule):
     if isinstance(rule, rrule.rruleset):
         rules = rule._rrule
     else:
         rules = [rule]
-        
+
     for r in rules:
         if r._count is None and r._until is None:
             return True
-        
+
     return False
+
 
 def localize_datetime(dt, tz):
     if not isinstance(dt, datetime):
@@ -35,6 +37,7 @@ def localize_datetime(dt, tz):
         return tz.localize(dt)
     else:
         return dt
+
 
 def sync_timezone(rule, tz):
     if isinstance(rule, rrule.rruleset):
@@ -49,7 +52,7 @@ def sync_timezone(rule, tz):
             rule._until = localize_datetime(rule._until, tz)
         if getattr(rule, '_dtstart', None):
             rule._dtstart = localize_datetime(rule._dtstart, tz)
-        
+
 
 class EventIndex(SimpleItem):
 
@@ -57,7 +60,7 @@ class EventIndex(SimpleItem):
 
     meta_type = "EventIndex"
 
-    manage_options= (
+    manage_options = (
         {'label': 'Settings',
          'action': 'manage_main'},
     )
@@ -160,7 +163,7 @@ class EventIndex(SimpleItem):
         # Strip out times from the recurrence:
         if rule is not None:
             sync_timezone(rule, start.tzinfo)
-            
+
         ### 2. Make them into what should be indexed.
         # XXX Naive events are not comparable to timezoned events, so we convert
         # everything to utctimetuple(). This means naive events are assumed to
@@ -356,15 +359,15 @@ class EventIndex(SimpleItem):
                     excludemin = False
 
                 start_uids = multiunion(self._end2uid.values(minkey, maxkey, excludemin=excludemin))
-                    
+
             except ValueError:
                 # No ending events
                 start_uids = IITreeSet()
-            
+
             # Include open ended events, if any
             if self._end2uid.has_key(None):
                 start_uids = union(start_uids, self._end2uid[None])
-            
+
         # XXX At this point an intersection with the resultset might be
         # beneficial. It would stop us from calculating the recurrence
         # of ids that won't be returned. It could be done after the
