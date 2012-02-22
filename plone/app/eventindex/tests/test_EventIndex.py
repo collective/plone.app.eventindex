@@ -549,161 +549,161 @@ class TestEventIndex(unittest.TestCase):
         )
         self.assertEqual(IITreeSet().add.call_count, 0)
 
-    @mock.patch('plone.app.eventindex.IITreeSet')
-    def test__apply_index__no_id(self, IITreeSet):
-        instance = self.createInstance()
-        request = mock.Mock()
-        request.has_key.return_value = None
-        IITreeSet.return_value = 'iitreeset'
-        self.assertEqual(
-            instance._apply_index(request),
-            ('iitreeset', ())
-        )
+    # @mock.patch('plone.app.eventindex.IITreeSet')
+    # def test__apply_index__no_id(self, IITreeSet):
+    #     instance = self.createInstance()
+    #     request = mock.Mock()
+    #     request.has_key.return_value = None
+    #     IITreeSet.return_value = 'iitreeset'
+    #     self.assertEqual(
+    #         instance._apply_index(request),
+    #         ('iitreeset', ())
+    #     )
 
-    @mock.patch('plone.app.eventindex.IITreeSet')
-    def test__apply_index__with_id_without_maxkey(self, IITreeSet):
-        instance = self.createInstance()
-        request = mock.Mock()
-        instance._get_position = mock.Mock()
-        instance._end2uid = mock.Mock()
-        instance._end2uid.maxKey = mock.Mock(side_effect=ValueError)
-        IITreeSet.return_value = 'iitreeset'
-        self.assertEqual(
-            instance._apply_index(request),
-            ('iitreeset', ())
-        )
+    # @mock.patch('plone.app.eventindex.IITreeSet')
+    # def test__apply_index__with_id_without_maxkey(self, IITreeSet):
+    #     instance = self.createInstance()
+    #     request = mock.Mock()
+    #     instance._get_position = mock.Mock()
+    #     instance._end2uid = mock.Mock()
+    #     instance._end2uid.maxKey = mock.Mock(side_effect=ValueError)
+    #     IITreeSet.return_value = 'iitreeset'
+    #     self.assertEqual(
+    #         instance._apply_index(request),
+    #         ('iitreeset', ())
+    #     )
 
-    @mock.patch('plone.app.eventindex.IITreeSet')
-    def test__apply_index__with_start_none(self, IITreeSet):
-        instance = self.createInstance()
-        request = mock.Mock()
-        instance._get_position = mock.Mock(return_value=None)
-        IITreeSet.return_value = [1, 2, 3]
-        instance._finalize_index = mock.Mock()
-        instance._end2uid = mock.Mock()
-        instance._apply_index(request)
-        self.assertTrue(instance._finalize_index.called)
+    # @mock.patch('plone.app.eventindex.IITreeSet')
+    # def test__apply_index__with_start_none(self, IITreeSet):
+    #     instance = self.createInstance()
+    #     request = mock.Mock()
+    #     instance._get_position = mock.Mock(return_value=None)
+    #     IITreeSet.return_value = [1, 2, 3]
+    #     instance._finalize_index = mock.Mock()
+    #     instance._end2uid = mock.Mock()
+    #     instance._apply_index(request)
+    #     self.assertTrue(instance._finalize_index.called)
 
-    @mock.patch('plone.app.eventindex.IITreeSet')
-    def test__apply_index__with_start_not_none_without_minkey(self, IITreeSet):
-        instance = self.createInstance()
-        request = mock.Mock()
-        instance._get_position = mock.Mock()
-        IITreeSet.return_value = [1, 2, 3]
-        instance._finalize_index = mock.Mock()
-        instance._end2uid = mock.Mock()
-        instance._end2uid.minKey = mock.Mock(side_effect=ValueError)
-        instance._end2uid.__getitem__ = mock.Mock(return_value=[])
-        # instance._apply_index(request)
-        IITreeSet.return_value = 'iitreeset'
-        self.assertEqual(
-            instance._apply_index(request),
-            ('iitreeset', ('start', ))
-        )
+    # @mock.patch('plone.app.eventindex.IITreeSet')
+    # def test__apply_index__with_start_not_none_without_minkey(self, IITreeSet):
+    #     instance = self.createInstance()
+    #     request = mock.Mock()
+    #     instance._get_position = mock.Mock()
+    #     IITreeSet.return_value = [1, 2, 3]
+    #     instance._finalize_index = mock.Mock()
+    #     instance._end2uid = mock.Mock()
+    #     instance._end2uid.minKey = mock.Mock(side_effect=ValueError)
+    #     instance._end2uid.__getitem__ = mock.Mock(return_value=[])
+    #     # instance._apply_index(request)
+    #     IITreeSet.return_value = 'iitreeset'
+    #     self.assertEqual(
+    #         instance._apply_index(request),
+    #         ('iitreeset', ('start', ))
+    #     )
 
-    @mock.patch('plone.app.eventindex.union')
-    @mock.patch('plone.app.eventindex.IITreeSet')
-    def test__apply_index__with_start_not_none_without_value(self, IITreeSet, union):
-        instance = self.createInstance()
-        request = mock.Mock()
-        instance._get_position = mock.Mock()
-        IITreeSet.return_value = [1, 2, 3]
-        instance._finalize_index = mock.Mock()
-        instance._end2uid = mock.Mock()
-        instance._end2uid.values.return_value = [mock.Mock()]
-        instance._end2uid.__getitem__ = mock.Mock(return_value=[])
-        instance._start2uid = mock.Mock()
-        instance._start2uid.values = mock.Mock(side_effect=ValueError)
-        self.assertEqual(
-            instance._apply_index(request),
-            ([1, 2, 3], ('start',))
-        )
+    # @mock.patch('plone.app.eventindex.union')
+    # @mock.patch('plone.app.eventindex.IITreeSet')
+    # def test__apply_index__with_start_not_none_without_value(self, IITreeSet, union):
+    #     instance = self.createInstance()
+    #     request = mock.Mock()
+    #     instance._get_position = mock.Mock()
+    #     IITreeSet.return_value = [1, 2, 3]
+    #     instance._finalize_index = mock.Mock()
+    #     instance._end2uid = mock.Mock()
+    #     instance._end2uid.values.return_value = [mock.Mock()]
+    #     instance._end2uid.__getitem__ = mock.Mock(return_value=[])
+    #     instance._start2uid = mock.Mock()
+    #     instance._start2uid.values = mock.Mock(side_effect=ValueError)
+    #     self.assertEqual(
+    #         instance._apply_index(request),
+    #         ([1, 2, 3], ('start',))
+    #     )
 
-    @mock.patch('plone.app.eventindex.intersection')
-    @mock.patch('plone.app.eventindex.union')
-    @mock.patch('plone.app.eventindex.IITreeSet')
-    def test__apply_index__with_minkey_is_not_start(self, IITreeSet, union, intersection):
-        instance = self.createInstance()
-        request = mock.Mock()
-        instance._get_position = mock.Mock()
-        IITreeSet.return_value = [1, 2, 3]
-        instance._finalize_index = mock.Mock()
-        instance._end2uid = mock.Mock()
-        minKey = instance._end2uid.minKey()
-        maxKey = instance._end2uid.maxKey()
-        instance._end2uid.values.return_value = [mock.Mock()]
-        instance._start2uid = mock.Mock()
-        instance._start2uid.values.return_value = [mock.Mock()]
-        instance._end2uid.has_key.return_value = None
-        instance._apply_index(request)
-        instance._end2uid.values.assert_called_with(
-            minKey,
-            maxKey,
-            excludemin=False,
-        )
-        self.assertEqual(union.call_count, 2)
-        self.assertTrue(intersection.called)
-        self.assertTrue(instance._finalize_index.called)
+    # @mock.patch('plone.app.eventindex.intersection')
+    # @mock.patch('plone.app.eventindex.union')
+    # @mock.patch('plone.app.eventindex.IITreeSet')
+    # def test__apply_index__with_minkey_is_not_start(self, IITreeSet, union, intersection):
+    #     instance = self.createInstance()
+    #     request = mock.Mock()
+    #     instance._get_position = mock.Mock()
+    #     IITreeSet.return_value = [1, 2, 3]
+    #     instance._finalize_index = mock.Mock()
+    #     instance._end2uid = mock.Mock()
+    #     minKey = instance._end2uid.minKey()
+    #     maxKey = instance._end2uid.maxKey()
+    #     instance._end2uid.values.return_value = [mock.Mock()]
+    #     instance._start2uid = mock.Mock()
+    #     instance._start2uid.values.return_value = [mock.Mock()]
+    #     instance._end2uid.has_key.return_value = None
+    #     instance._apply_index(request)
+    #     instance._end2uid.values.assert_called_with(
+    #         minKey,
+    #         maxKey,
+    #         excludemin=False,
+    #     )
+    #     self.assertEqual(union.call_count, 2)
+    #     self.assertTrue(intersection.called)
+    #     self.assertTrue(instance._finalize_index.called)
 
-    @mock.patch('plone.app.eventindex.intersection')
-    @mock.patch('plone.app.eventindex.union')
-    @mock.patch('plone.app.eventindex.IITreeSet')
-    def test__apply_index__with_minkey_is_start(self, IITreeSet, union, intersection):
-        instance = self.createInstance()
-        request = mock.Mock()
-        position = mock.Mock()
-        instance._get_position = position
-        instance._get_position = mock.Mock()
-        instance._get_position().utctimetuple.return_value = position
-        IITreeSet.return_value = [1, 2, 3]
-        instance._finalize_index = mock.Mock()
-        instance._end2uid = mock.Mock()
-        instance._end2uid.minKey.return_value = position
-        minKey = instance._end2uid.minKey()
-        maxKey = instance._end2uid.maxKey()
-        instance._end2uid.values.return_value = [mock.Mock()]
-        instance._start2uid = mock.Mock()
-        instance._start2uid.values.return_value = [mock.Mock()]
-        instance._end2uid.has_key.return_value = None
-        instance._apply_index(request)
-        instance._end2uid.values.assert_called_with(
-            minKey,
-            maxKey,
-            excludemin=True,
-        )
-        self.assertEqual(union.call_count, 2)
-        self.assertTrue(intersection.called)
-        self.assertTrue(instance._finalize_index.called)
+    # @mock.patch('plone.app.eventindex.intersection')
+    # @mock.patch('plone.app.eventindex.union')
+    # @mock.patch('plone.app.eventindex.IITreeSet')
+    # def test__apply_index__with_minkey_is_start(self, IITreeSet, union, intersection):
+    #     instance = self.createInstance()
+    #     request = mock.Mock()
+    #     position = mock.Mock()
+    #     instance._get_position = position
+    #     instance._get_position = mock.Mock()
+    #     instance._get_position().utctimetuple.return_value = position
+    #     IITreeSet.return_value = [1, 2, 3]
+    #     instance._finalize_index = mock.Mock()
+    #     instance._end2uid = mock.Mock()
+    #     instance._end2uid.minKey.return_value = position
+    #     minKey = instance._end2uid.minKey()
+    #     maxKey = instance._end2uid.maxKey()
+    #     instance._end2uid.values.return_value = [mock.Mock()]
+    #     instance._start2uid = mock.Mock()
+    #     instance._start2uid.values.return_value = [mock.Mock()]
+    #     instance._end2uid.has_key.return_value = None
+    #     instance._apply_index(request)
+    #     instance._end2uid.values.assert_called_with(
+    #         minKey,
+    #         maxKey,
+    #         excludemin=True,
+    #     )
+    #     self.assertEqual(union.call_count, 2)
+    #     self.assertTrue(intersection.called)
+    #     self.assertTrue(instance._finalize_index.called)
 
-    @mock.patch('plone.app.eventindex.intersection')
-    @mock.patch('plone.app.eventindex.union')
-    @mock.patch('plone.app.eventindex.IITreeSet')
-    def test__apply_index__end2uid_has_none(self, IITreeSet, union, intersection):
-        instance = self.createInstance()
-        request = mock.Mock()
-        position = mock.Mock()
-        instance._get_position = position
-        instance._get_position = mock.Mock()
-        instance._get_position().utctimetuple.return_value = position
-        IITreeSet.return_value = [1, 2, 3]
-        instance._finalize_index = mock.Mock()
-        instance._end2uid = mock.MagicMock()
-        instance._end2uid.__getitem__.return_value = [mock.Mock()]
-        instance._end2uid.minKey.return_value = position
-        minKey = instance._end2uid.minKey()
-        maxKey = instance._end2uid.maxKey()
-        instance._end2uid.values.return_value = [mock.Mock()]
-        instance._start2uid = mock.Mock()
-        instance._start2uid.values.return_value = [mock.Mock()]
-        instance._apply_index(request)
-        instance._end2uid.values.assert_called_with(
-            minKey,
-            maxKey,
-            excludemin=True,
-        )
-        self.assertEqual(union.call_count, 3)
-        self.assertTrue(intersection.called)
-        self.assertTrue(instance._finalize_index.called)
+    # @mock.patch('plone.app.eventindex.intersection')
+    # @mock.patch('plone.app.eventindex.union')
+    # @mock.patch('plone.app.eventindex.IITreeSet')
+    # def test__apply_index__end2uid_has_none(self, IITreeSet, union, intersection):
+    #     instance = self.createInstance()
+    #     request = mock.Mock()
+    #     position = mock.Mock()
+    #     instance._get_position = position
+    #     instance._get_position = mock.Mock()
+    #     instance._get_position().utctimetuple.return_value = position
+    #     IITreeSet.return_value = [1, 2, 3]
+    #     instance._finalize_index = mock.Mock()
+    #     instance._end2uid = mock.MagicMock()
+    #     instance._end2uid.__getitem__.return_value = [mock.Mock()]
+    #     instance._end2uid.minKey.return_value = position
+    #     minKey = instance._end2uid.minKey()
+    #     maxKey = instance._end2uid.maxKey()
+    #     instance._end2uid.values.return_value = [mock.Mock()]
+    #     instance._start2uid = mock.Mock()
+    #     instance._start2uid.values.return_value = [mock.Mock()]
+    #     instance._apply_index(request)
+    #     instance._end2uid.values.assert_called_with(
+    #         minKey,
+    #         maxKey,
+    #         excludemin=True,
+    #     )
+    #     self.assertEqual(union.call_count, 3)
+    #     self.assertTrue(intersection.called)
+    #     self.assertTrue(instance._finalize_index.called)
 
     def test_numObjects(self):
         instance = self.createInstance()
