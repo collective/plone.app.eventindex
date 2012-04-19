@@ -306,8 +306,8 @@ class EventIndexTests(unittest.TestCase):
     def test_infinite_recurrence(self):
         helsinki = timezone('Europe/Helsinki')
 
-        # Index an event that goes on forever. All events being infinitely
-        # recurring is a special case, so we need to test for this.
+        # Index an event that goes on forever.
+        # XXX: Special case that needs testing: All events are infinitely recurring.
         index = EventIndex('event')
         index.index_object(1, TestOb(
             name='a',
@@ -316,7 +316,7 @@ class EventIndexTests(unittest.TestCase):
             recurrence='RRULE:FREQ=DAILY;INTERVAL=100'))
 
         # And now query for it with no end.
-        # If the index does not handle this case specially, we'd
+        # If the index does not handle this case correctly, we'd
         # generate recurrences until we ran out of memory.
         res = index._apply_index({
             'event': {
