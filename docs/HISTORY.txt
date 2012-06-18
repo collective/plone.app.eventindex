@@ -4,4 +4,7 @@ Changelog
 1.0dev (unreleased)
 -------------------
 
-- Initial release
+- Fixed a bug where reindexing an object left stale data from a previous
+  indexing around causing false query results. Now the data structures are
+  explicitly cleared before indexing an object.
+  [dokai]

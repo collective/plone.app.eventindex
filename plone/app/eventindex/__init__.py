@@ -136,6 +136,9 @@ class EventIndex(SimpleItem):
           calling it raises an AttributeError, do not add it to the index.
           for that name.
         """
+        # Clear the data structures before indexing the object. This will ensure
+        # we don't leave any stale data behind when an object gets reindexed.
+        self.unindex_object(documentId)
 
         ### 1. Get the values.
         start = self._getattr(self.start_attr, obj)

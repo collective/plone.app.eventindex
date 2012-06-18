@@ -406,3 +406,36 @@ class EventIndexTests(unittest.TestCase):
         })
         self.assertEqual(len(res[0]), 1)
         self.assertTrue(1 in res[0])
+
+    def test_reindexing_with_recurrence_removed(self):
+        helsinki = timezone('Europe/Helsinki')
+
+        event = TestOb(
+            name='a',
+            start=helsinki.localize(datetime(2011, 10, 3, 10, 0)),
+            end=helsinki.localize(datetime(2011, 10, 3, 11, 0)),
+            recurrence='RRULE:FREQ=DAILY;INTERVAL=1;COUNT=10')
+        index = EventIndex('event')
+        # Index the event first with recurrence information.
+        index.index_object(1, event)
+
+        # Assert that we get a hit in the recurrence range.
+        res = index._apply_index({
+            'event': {
+                'start': helsinki.localize(datetime(2011, 10, 5)),
+                'end': helsinki.localize(datetime(2011, 10, 6)),
+            }
+        })
+        self.assertEqual(len(res[0]), 1)
+        self.assertTrue(1 in res[0])
+        # Reindex the same object, now without recurrence.
+        event.recurrence = None
+        index.index_object(1, event)
+        # We should not get hits in the previous recurrence period anymore
+        res = index._apply_index({
+            'event': {
+                'start': helsinki.localize(datetime(2011, 10, 5)),
+                'end': helsinki.localize(datetime(2011, 10, 6)),
+            }
+        })
+        self.assertEqual(len(res[0]), 0)
