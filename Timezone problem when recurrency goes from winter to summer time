@@ -1,0 +1,34 @@
+Re-Setting my User TimeZone from Denver to  Los Angeles did start to fix the error.  Then I found, moving back to Denver and some page reloads/ logins/ logouts, got the error to go away.
+
+Ie:  Denver then Los Angeles then Denver again  with  Page Close and Reopen, did finally get all time presentations aligned and Odoo 8's sensed TimeZone Error to go away.  All times are correct on both User/Browser Machines and the Server.
+
+
+
+Initially after moving back from Los Angeles to Denver in the Odoo settings the error returned, but then it was gone.  Had been consistent for at least 2 days before these changes.  I am "Red Green" colorblind and did not easily notice the Red Alarm Sign in my page head.
+
+
+
+---------------
+
+
+
+Well,  I am not really synching with Google Calendar, but I realized that my timesheets were logging the wrong time by an hour.  There was a "Spring Forward" event a few weeks ago...
+
+Strange debug  (I am running Odoo 8 on Debian Server).
+
+Debian Server has correct UTC and Denver Time Zone
+
+Ran this to be sure, and all was correct:  dpkg-reconfigure tzdata
+
+My primary Chrome and Firefox system was giving me a "Red" Alarm:
+
+                     odoouser time does not match what is set in settings or browser time
+
+On One machine recently installed, I was getting the error in Chrome but Not in Firefox.  In another machine, my main one, the error was in both Chrome and Firefox.  I did find a setting on the new machine to  have Windows track time adjustments (day light savings time)..  That just made the problem consistent in all browsers.
+
+The "working" solution I found for my needs was changing the USER Time Zone (I am a one person show) to "America/Los_Angeles"  from what it should be "America/Denver".  Not elegant at at all and likely could cause large issues if synching, say, with Google Calendar, but I just need my log times to be correct.
+
+I expect there are some fixes to this in, say V 12, but it appears that this has been an ongoing issue.  Some people have posted commands that can somehow change the Postgres DateTime calculations but I did not want to go there just now.
+
+Hope this is helpful.  In a Pinch, act like you are in a nearby timezone.    Seems an issue in the Odoo Code.
+
