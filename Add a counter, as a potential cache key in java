@@ -1,0 +1,27 @@
+try {
+    // Pre-condition: Cache must be connected
+
+    // Specify unique cache key for counter
+    String key = "SubscriptionCounter";
+
+    // Set initial value of counter
+    long initialValue = 15;
+
+    // Create counter
+    Counter counter = cache.getDataStructuresManager().createCounter(key, initialValue);
+} catch (OperationFailedException ex) {
+    // NCache specific errors
+    if (ex.getErrorCode() == NCacheErrorCodes.KEY_ALREADY_EXISTS) {
+        // The specified key already exists in cache,
+        // Either remove the existing object from cache
+        // Or specify another key
+    } else {
+        // NCache specific exception
+        // Exception can occur due to:
+        // Connection Failures
+        // Operation Timeout
+        // Operation performed during state transfer
+    }
+} catch (Exception ex) {
+    // Any generic exception like IllegalArgumentException or NullPointerException
+}
